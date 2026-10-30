@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="TheOffice.Application/TheOffice.Application.csproj" />
+  <Project Path="TheOffice.Domain/TheOffice.Domain.csproj" />
+  <Project Path="TheOffice.Infrastructure/TheOffice.Infrastructure.csproj" />
+  <Project Path="TheOffice.Web/TheOffice.Web.csproj" Id="ae6b4f99-ef6c-4c68-a763-69bc324685cc" />
+</Solution>
