@@ -5,10 +5,10 @@ using TheOffice.Domain.Entities;
 
 namespace TheOffice.Application.Interfaces.Repositories;
 
-internal interface IWorkScheduleRepository
+public interface IWorkScheduleRepository
 {
     Task<IEnumerable<WorkSchedule>> GetAllAsync();
-    Task<WorkSchedule> GetByIdAsync(int id);
+    Task<WorkSchedule?> GetByIdAsync(int id);
     Task<WorkSchedule> AddAsync(WorkSchedule workSchedule);
     Task UpdateAsync(WorkSchedule workSchedule);
     Task DeleteAsync(int id);

@@ -1,0 +1,16 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using TheOffice.Domain.Entities;
+
+namespace TheOffice.Application.Interfaces.Services
+{
+    public interface IInvoiceService
+    {
+        Task<IEnumerable<Invoice>> GetAllAsync();
+        Task<Invoice?> GetByIdAsync(int id);
+        Task<Invoice> AddAsync(Invoice invoice);
+        Task UpdateAsync(Invoice invoice);
+        Task DeleteAsync(int id);
+    }
+}
