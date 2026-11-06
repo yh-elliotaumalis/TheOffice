@@ -1,55 +1,101 @@
 ﻿@implements IDisposable
-
 @inject NavigationManager NavigationManager
-
-<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">TheOffice.Web</a>
-    </div>
-</div>
 
 <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
 
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+<nav class="d-flex flex-row align-items-center justify-content-center w-100 px-3">
+
+    <!-- VÄNSTER -->
+    <div class="d-flex align-items-center me-auto">
+        <div class="nav-item">
+            <NavLink class="nav-link fs-6 fw-semibold py-2 px-3 text-nowrap"
+                     href=""
+                     Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu me-1" aria-hidden="true"></span>
+                Home
             </NavLink>
         </div>
+    </div>
+
+    <!-- MITTEN -->
+    <div class="d-flex align-items-center justify-content-center mx-auto gap-1">
+
+        <NavLink class="nav-link fs-6 fw-semibold py-2 px-3 text-nowrap text-white"
+                 href="Account/Personnelregister">
+            Personnel Register
+        </NavLink>
+
+        <NavLink class="nav-link fs-6 fw-semibold py-2 px-3 text-nowrap text-white"
+                 href="Account/Customerregister">
+            Customer Register
+        </NavLink>
+
+        <NavLink class="nav-link fs-6 fw-semibold py-2 px-3 text-nowrap text-white"
+                 href="Account/Booking">
+            Bookings
+        </NavLink>
+
+        <NavLink class="nav-link fs-6 fw-semibold py-2 px-3 text-nowrap text-white"
+                 href="Account/Timereport">
+            Time Report
+        </NavLink>
+
+        <NavLink class="nav-link fs-6 fw-semibold py-2 px-3 text-nowrap text-white"
+                 href="Account/Billing">
+            Billing
+        </NavLink>
+
+    </div>
+
+    <!-- HÖGER -->
+    <div class="d-flex align-items-center ms-auto">
 
         <AuthorizeView>
             <Authorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Manage">
-                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
+
+                <div class="nav-item">
+                    <NavLink class="nav-link fs-6 fw-semibold py-2 px-3 text-nowrap text-white"
+                             href="Account/Manage">
+                        <span class="bi bi-person-fill-nav-menu me-1" aria-hidden="true"></span>
+                        @context.User.Identity?.Name
                     </NavLink>
                 </div>
-                <div class="nav-item px-3">
-                    <form action="Account/Logout" method="post">
+
+                <div class="nav-item">
+                    <form action="Account/Logout" method="post" class="m-0">
                         <AntiforgeryToken />
                         <input type="hidden" name="ReturnUrl" value="@currentUrl" />
-                        <button type="submit" class="nav-link">
-                            <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
+
+                        <button type="submit"
+                                class="nav-link btn btn-link fs-6 fw-semibold py-2 px-3 text-nowrap text-white">
+                            <span class="bi bi-arrow-bar-left-nav-menu me-1" aria-hidden="true"></span>
+                            Logout
                         </button>
                     </form>
                 </div>
+
             </Authorized>
+
             <NotAuthorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Register">
-                        <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
-                    </NavLink>
-                </div>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="Account/Login">
-                        <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
-                    </NavLink>
-                </div>
+                    <div>
+                    <NavLink class="nav-link fs-6 fw-semibold py-2 px-3 text-nowrap text-white d-inline-flex align-items-center"
+                                 href="Account/Register">
+                            <span class="bi bi-person-nav-menu me-1" aria-hidden="true"></span>
+                            Register
+                        </NavLink>
+                    </div>
+
+                    <div>
+                    <NavLink class="nav-link fs-6 fw-semibold py-2 px-3 text-nowrap text-white d-inline-flex align-items-center"
+                                 href="Account/Login">
+                            <span class="bi bi-person-badge-nav-menu me-1" aria-hidden="true"></span>
+                            Login
+                        </NavLink>
+                    </div>
             </NotAuthorized>
         </AuthorizeView>
-    </nav>
-</div>
+    </div>
+</nav>
 
 @code {
     private string? currentUrl;
@@ -71,4 +117,3 @@
         NavigationManager.LocationChanged -= OnLocationChanged;
     }
 }
-
