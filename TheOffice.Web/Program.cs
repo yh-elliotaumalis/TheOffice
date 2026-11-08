@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using TheOffice.Application.Interfaces.Services;
 using TheOffice.Web.Components;
 using TheOffice.Web.Components.Account;
 using TheOffice.Web.Data;
+using TheOffice.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +39,17 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+
+
+builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddScoped<IConferenceRoomService, ConferenceRoomService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IEmployeeAbsenceService, EmployeeAbsenceService>();
+builder.Services.AddScoped<IEmployeeService, EmployeeService>();
+builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<ITimeReportService, TimeReportService>();
+builder.Services.AddScoped<IWorkScheduleService, WorkScheduleService>();
 
 var app = builder.Build();
 
