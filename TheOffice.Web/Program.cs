@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using TheOffice.Application.Interfaces.Repositories;
 using TheOffice.Application.Interfaces.Services;
 using TheOffice.Web.Components;
 using TheOffice.Web.Components.Account;
 using TheOffice.Web.Data;
+using TheOffice.Web.Repositories;
 using TheOffice.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -50,6 +52,16 @@ builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<ITimeReportService, TimeReportService>();
 builder.Services.AddScoped<IWorkScheduleService, WorkScheduleService>();
+
+builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+builder.Services.AddScoped<IConferenceRoomRepository, ConferenceRoomRepository>();
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<IEmployeeAbsenceRepository, EmployeeAbsenceRepository>();
+builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
+builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+builder.Services.AddScoped<ITimeReportRepository, TimeReportRepository>();
+builder.Services.AddScoped<IWorkScheduleRepository, WorkScheduleRepository>();
 
 var app = builder.Build();
 
