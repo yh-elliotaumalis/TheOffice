@@ -1,0 +1,67 @@
+﻿@page "/customers"
+@using TheOffice.Application.Interfaces.Services
+@using TheOffice.Domain.Entities
+@inject ICustomerService CustomerService
+
+<PageTitle>Kundregister</PageTitle>
+
+<h1>Kundregister</h1>
+
+<label for="customer-search">Sök efter namn eller kundnummer</label>
+<input id="customer-search" type="search" class="form-control mb-3"
+       @bind="searchText" @bind:event="oninput" />
+
+@if (isLoading)
+{
+    <p>Laddar kunder...</p>
+}
+else
+{
+    var filteredCustomers = GetFilteredCustomers();
+
+    if (filteredCustomers.Count == 0)
+    {
+        <p>Inga kunder hittades.</p>
+    }
+    else
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Kundnummer</th>
+                    <th scope="col">Namn</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var customer in filteredCustomers)
+                {
+                    <tr>
+                        <td>@customer.Id</td>
+                        <td>@customer.Name</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
+
+@code {
+    private List<Customer> customers = new List<Customer>();
+    private string searchText = "";
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        customers = (await CustomerService.GetAllAsync()).ToList();
+        isLoading = false;
+    }
+
+    private List<Customer> GetFilteredCustomers()
+    {
+        string search = searchText.Trim();
+
+        return customers.Where(customer =>
+            customer.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
+            || customer.Id.ToString().Contains(search)).ToList();
+    }
+}
