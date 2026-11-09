@@ -36,4 +36,17 @@ public class EmployeeRepository(ApplicationDbContext context) : IEmployeeReposit
         context.Employees.Remove(employee);
         await context.SaveChangesAsync();
     }
+
+    public async Task<IEnumerable<Employee>> SearchAsync(string? searchTerm)
+    {
+        var query = context.Employees.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(c => c.FullName.Contains(searchTerm) ||
+                                     c.Email.Contains(searchTerm));
+        }
+
+        return await query.ToListAsync();
+    }
 }

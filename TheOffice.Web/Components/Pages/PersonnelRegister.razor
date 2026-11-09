@@ -1,7 +1,65 @@
 ﻿@page "/personnelregister-page"
+@using TheOffice.Application.Interfaces.Services
+@using TheOffice.Domain.Entities
+@using TheOffice.Web.Components.Account.Pages
+@using TheOffice.Web.Data
+@inject ApplicationDbContext Dbcontext
+@inject IEmployeeService EmployeeService
 
-<h3>PersonnelRegister</h3>
+
+<div class="d-flex mb-3 gap-2">
+    <input type="text" class="form-control" placeholder="Sök..." @bind="searchTerm" @bind:event="oninput" @onkeyup="Search" />
+</div>
+
+@if (employees == null)
+{
+    <p><em>Laddar...</em></p>
+}
+else if (!employees.Any() && string.IsNullOrWhiteSpace(searchTerm))
+{
+    <div class="alert alert-info text-center" role="alert">
+        Det finns inga registrerade anställda i databasen ännu.
+    </div>
+}
+else if (!employees.Any())
+{
+    <div class="alert alert-warning text-center" role="alert">
+        Inga anställda hittades för "<strong>@searchTerm</strong>".
+    </div>
+}
+else
+{
+    <ul class="list-group">
+        @foreach (var emp in employees)
+        {
+            <li class="list-group-item list-group-item-action">
+                <a href="@($"/employee-details/{emp.Id}")" class="text-decoration-none text-dark d-block">
+                    <div class="fw-bold fs-5">
+                        @emp.FullName — <span class="text-muted fs-6">@emp.Title</span>
+                    </div>
+                    <div class="text-secondary small">
+                        📧 @emp.Email | 📞 @emp.Number
+                    </div>
+                </a>
+            </li>
+        }
+    </ul>
+}
 
 @code {
 
+    public ApplicationDbContext context { get; set; } = default!;
+
+    private string searchTerm { get; set; } = string.Empty;
+    private IEnumerable<Employee> employees = new List<Employee>();
+
+    private async Task Search()
+    {
+        employees = await EmployeeService.SearchAsync(searchTerm);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Search();
+    }
 }

@@ -26,6 +26,11 @@ namespace TheOffice.Web.Services
             return employeeRepository.GetByIdAsync(id);
         }
 
+        public Task<IEnumerable<Employee>> SearchAsync(string? searchTerm)
+        {
+            return employeeRepository.SearchAsync(searchTerm);
+        }
+
         public Task UpdateAsync(Employee employee)
         {
             return employeeRepository.UpdateAsync(employee);
