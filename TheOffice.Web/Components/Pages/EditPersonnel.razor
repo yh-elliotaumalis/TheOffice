@@ -1,0 +1,62 @@
+﻿@page "/edit-personnel/{Id:int}"
+@using TheOffice.Application.Interfaces.Services
+@using TheOffice.Domain.Entities
+@using TheOffice.Web.Data
+@inject ApplicationDbContext Dbcontext
+@inject IEmployeeService EmployeeService
+@inject NavigationManager Navigation
+
+
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Employee Details</h3>
+</div>
+
+<div>
+    @if (employee == null)
+    {
+        <p>No employees left in the list</p>
+    }
+</div>
+
+<table class="table table-bordered align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>Name</th>
+            <th>Phone Number</th>
+            <th>Email</th>
+            <th>Address</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>@employee?.FullName</td>
+            <td>@employee?.Number</td>
+            <td>@employee?.Email</td>
+            <td>@employee?.Address</td>
+        </tr>
+    </tbody>
+</table>
+<div class="d-flex gap-2">
+    <button class="btn btn-success btn-sm">Save</button>
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Employee? employee;
+
+    protected override async Task OnInitializedAsync()
+    {
+        employee = await EmployeeService.GetByIdAsync(Id);
+    }
+
+    private async Task SaveEmployee()
+    {
+        if (employee != null)
+        {
+            await EmployeeService.UpdateAsync(employee);
+        }
+    }
+}

@@ -1,0 +1,25 @@
+﻿@page "/addnewpersonnel-page"
+@using TheOffice.Application.Interfaces.Services
+@using TheOffice.Domain.Entities
+@using TheOffice.Web.Data
+@inject ApplicationDbContext Dbcontext
+@inject IEmployeeService EmployeeService
+@inject NavigationManager Navigation
+
+
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Add new Employee</h3>
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Employee? employee;
+
+    protected override async Task OnInitializedAsync()
+    {
+        employee = await EmployeeService.GetByIdAsync(Id);
+    }
+}
