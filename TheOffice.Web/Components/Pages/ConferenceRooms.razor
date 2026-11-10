@@ -40,35 +40,38 @@
 
     <input class="mb-2 form-control" id="room-search" type="search" @bind="search" @bind:event="oninput" @bind:after="SearchConferenceRooms" placeholder="Search conference rooms" />
     
-    <table>
+    <table class="table table-hover">
         <thead>
             <tr>
                 <th>Room Name</th>
                 <th>Availability</th>
             </tr>
         </thead>
-
-        @if (conferenceRooms == null)
-        {
-            <tr>
-                <td colspan="2">Loading conference rooms...</td>
-            </tr>
-        }
-        else if (!conferenceRooms.Any())
-        {
-            <tr>
-                <td colspan="2">No conference rooms available.</td>
-            </tr>
-        }
-        else
-        {
-            @foreach (var room in conferenceRooms)
+        <tbody>
+            @if (conferenceRooms == null)
             {
                 <tr>
-                    <td>@room.Name</td>
-                    <td>Available</td>
+                    <td colspan="2">Loading conference rooms...</td>
                 </tr>
             }
-        }
+            else if (!conferenceRooms.Any())
+            {
+                <tr>
+                    <td colspan="2">No conference rooms available.</td>
+                </tr>
+            }
+            else
+            {
+                @foreach (var room in conferenceRooms)
+                {
+                    <tr>
+                        <td>
+                            <a href="/conference-room/@room.Id">@room.Name</a>
+                        </td>
+                        <td>@(IsAvailable(room) ? "Available" : "Unavailable")</td>
+                    </tr>
+                }
+            }
+        </tbody>
     </table>
 </div>

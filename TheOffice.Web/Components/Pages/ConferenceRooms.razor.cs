@@ -68,4 +68,11 @@ public partial class ConferenceRooms
             success = false;
         }
     }
+
+    private static bool IsAvailable(ConferenceRoom conferenceRoom)
+    {
+        var now = DateTime.Now;
+        var isAvailable = !conferenceRoom.Bookings.Any(b => b.StartTime <= now && b.EndTime >= now);
+        return isAvailable;
+    }
 }
