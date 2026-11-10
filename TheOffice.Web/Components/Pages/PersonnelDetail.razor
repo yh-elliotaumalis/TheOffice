@@ -5,7 +5,7 @@
 @inject ApplicationDbContext Dbcontext
 @inject IEmployeeService EmployeeService
 @inject NavigationManager Navigation
-
+@inject IJSRuntime JSRuntime
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h3>Personnel Details</h3>
@@ -21,17 +21,21 @@
 <table class="table table-bordered align-middle">
     <thead class="table-light">
         <tr>
-            <th>Name</th>
-            <th>Phone Number</th>
+            <th>Full Name</th>
+            <th>Social Number</th>
+            <th>Title</th>
             <th>Email</th>
+            <th>Phone Number</th>
             <th>Address</th>
         </tr>
     </thead>
     <tbody>
         <tr>
             <td>@employee?.FullName</td>
-            <td>@employee?.Number</td>
+            <td>@employee?.SocialNumber</td>
+            <td>@employee?.Title</td>
             <td>@employee?.Email</td>
+            <td>@employee?.Number</td>
             <td>@employee?.Address</td>
         </tr>
     </tbody>
@@ -39,7 +43,6 @@
 <div class="d-flex gap-2">
     <NavLink class="btn btn-primary" href="@($"/edit-personnel/{Id}")">Edit</NavLink>
     <button class="btn btn-danger btn-sm" @onclick="DeleteEmployee">Delete</button>
-    <NavLink class="btn btn-success" href="@($"/addnewpersonnel-page")">Add New</NavLink>
 </div>
 
 @code {
@@ -57,8 +60,13 @@
     {
         if (employee != null)
         {
-            await EmployeeService.DeleteAsync(employee.Id);
-            Navigation.NavigateTo("/personnelregister-page");
+            bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to delete {employee.FullName}?");
+
+            if (confirmed)
+            {
+                await EmployeeService.DeleteAsync(employee.Id);
+                Navigation.NavigateTo("/personnelregister-page");
+            }
         }
     }
 }

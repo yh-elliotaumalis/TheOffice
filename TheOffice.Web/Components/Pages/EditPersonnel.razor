@@ -7,7 +7,7 @@
 @inject NavigationManager Navigation
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3>Edit Employee</h3>
+    <h3>Edit Personnel</h3>
 </div>
 
 @if (employee == null)
@@ -18,24 +18,42 @@ else
 {
     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
         <EditForm Model="employee" OnValidSubmit="SaveEmployee" class="card p-4 shadow-sm" style="width: 45%;">
+            <DataAnnotationsValidator />
+
             <div class="mb-3">
                 <label class="form-label font-weight-bold">Full Name</label>
                 <InputText @bind-Value="employee.FullName" class="form-control" />
+                <ValidationMessage For="@(() => employee.FullName)" class="text-danger" />
             </div>
-
+            
             <div class="mb-3">
-                <label class="form-label font-weight-bold">Phone Number</label>
-                <InputText @bind-Value="employee.Number" class="form-control" />
+                <label class="form-label font-weight-bold">Social Number</label>
+                <InputText @bind-Value="employee.SocialNumber" class="form-control" />
+                <ValidationMessage For="@(() => employee.SocialNumber)" class="text-danger" />
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label font-weight-bold">Title</label>
+                <InputText @bind-Value="employee.Title" class="form-control" />
+                <ValidationMessage For="@(() => employee.Title)" class="text-danger" />
             </div>
 
             <div class="mb-3">
                 <label class="form-label font-weight-bold">Email</label>
                 <InputText @bind-Value="employee.Email" class="form-control" />
+                <ValidationMessage For="@(() => employee.Email)" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label font-weight-bold">Phone Number</label>
+                <InputText @bind-Value="employee.Number" class="form-control" />
+                <ValidationMessage For="@(() => employee.Number)" class="text-danger" />
             </div>
 
             <div class="mb-3">
                 <label class="form-label font-weight-bold">Address</label>
                 <InputText @bind-Value="employee.Address" class="form-control" />
+                <ValidationMessage For="@(() => employee.Address)" class="text-danger" />
             </div>
 
             <div class="d-flex gap-2 mt-4">
