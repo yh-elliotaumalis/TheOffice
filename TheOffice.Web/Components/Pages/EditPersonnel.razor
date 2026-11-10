@@ -6,40 +6,45 @@
 @inject IEmployeeService EmployeeService
 @inject NavigationManager Navigation
 
-
-
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>Employee Details</h3>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>Edit Employee</h3>
 </div>
 
-<div>
-    @if (employee == null)
-    {
-        <p>No employees left in the list</p>
-    }
-</div>
+@if (employee == null)
+{
+    <p><em>Loading employee details...</em></p>
+}
+else
+{
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <EditForm Model="employee" OnValidSubmit="SaveEmployee" class="card p-4 shadow-sm" style="width: 45%;">
+            <div class="mb-3">
+                <label class="form-label font-weight-bold">Full Name</label>
+                <InputText @bind-Value="employee.FullName" class="form-control" />
+            </div>
 
-<table class="table table-bordered align-middle">
-    <thead class="table-light">
-        <tr>
-            <th>Name</th>
-            <th>Phone Number</th>
-            <th>Email</th>
-            <th>Address</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>@employee?.FullName</td>
-            <td>@employee?.Number</td>
-            <td>@employee?.Email</td>
-            <td>@employee?.Address</td>
-        </tr>
-    </tbody>
-</table>
-<div class="d-flex gap-2">
-    <button class="btn btn-success btn-sm">Save</button>
-</div>
+            <div class="mb-3">
+                <label class="form-label font-weight-bold">Phone Number</label>
+                <InputText @bind-Value="employee.Number" class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label font-weight-bold">Email</label>
+                <InputText @bind-Value="employee.Email" class="form-control" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label font-weight-bold">Address</label>
+                <InputText @bind-Value="employee.Address" class="form-control" />
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-success">Save Changes</button>
+                <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+            </div>
+        </EditForm>
+    </div>
+}
 
 @code {
     [Parameter]
@@ -57,6 +62,12 @@
         if (employee != null)
         {
             await EmployeeService.UpdateAsync(employee);
+            Navigation.NavigateTo($"/employee-details/{Id}");
         }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo($"/employee-details/{Id}");
     }
 }
