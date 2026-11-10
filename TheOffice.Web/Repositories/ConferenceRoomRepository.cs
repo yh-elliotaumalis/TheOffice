@@ -7,14 +7,19 @@ namespace TheOffice.Web.Repositories
 {
     public class ConferenceRoomRepository(ApplicationDbContext context) : IConferenceRoomRepository
     {
+        public IQueryable<ConferenceRoom> GetConferenceRoomsWithBookings()
+        {
+            return context.ConferenceRooms.Include(c => c.Bookings);
+        }
+
         public async Task<IEnumerable<ConferenceRoom>> GetAllAsync()
         {
-            return await context.ConferenceRooms.ToListAsync();
+            return await GetConferenceRoomsWithBookings().ToListAsync();
         }
 
         public async Task<ConferenceRoom?> GetByIdAsync(int id)
         {
-            return await context.ConferenceRooms
+            return await GetConferenceRoomsWithBookings()
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
         public async Task<ConferenceRoom> AddAsync(ConferenceRoom conferenceRoom)
