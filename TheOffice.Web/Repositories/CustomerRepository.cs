@@ -18,6 +18,7 @@ public class CustomerRepository(ApplicationDbContext context) : ICustomerReposit
     public async Task<Customer?> GetByIdAsync(int id)
     {
         return await context.Customers
+            .Include(c => c.Projects)
             .FirstOrDefaultAsync(c => c.Id == id);
     }
     public async Task<Customer> AddAsync(Customer customer)
@@ -35,6 +36,13 @@ public class CustomerRepository(ApplicationDbContext context) : ICustomerReposit
     {
         var customer = await context.Customers.FirstOrDefaultAsync(c => c.Id == id);
         if (customer is null) return;
+
+        if (await context.Projects.AnyAsync(p => p.CustomerId == id)
+            || await context.Bookings.AnyAsync(b => b.CustomerId == id)
+            || await context.Invoices.AnyAsync(i => i.CustomerId == id))
+        {
+            throw new InvalidOperationException("Kunden kan inte tas bort eftersom den har projekt, bokningar eller fakturor.");
+        }
 
         context.Customers.Remove(customer);
         await context.SaveChangesAsync();
