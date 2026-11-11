@@ -1,0 +1,24 @@
+﻿@page "/employee-schedule"
+@using Microsoft.AspNetCore.Components.Authorization
+@using TheOffice.Web.Data
+
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ApplicationDbContext Context
+
+<h3>Schedule for @userName</h3>
+
+@code {
+    private string userName = "Guest";
+    public ApplicationDbContext context { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity != null && user.Identity.IsAuthenticated)
+        {
+            userName = user.Identity.Name ?? "User";
+        }
+    }
+}
