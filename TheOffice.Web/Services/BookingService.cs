@@ -12,6 +12,11 @@ namespace TheOffice.Web.Services
             return bookingRepository.AddAsync(booking);
         }
 
+        public Task<bool> HasOverlapAsync(int conferenceRoomId, DateTime start, DateTime end)
+        {
+            return bookingRepository.HasOverlapAsync(conferenceRoomId, start, end);
+        }
+
         public Task DeleteAsync(int id)
         {
             return bookingRepository.DeleteAsync(id);

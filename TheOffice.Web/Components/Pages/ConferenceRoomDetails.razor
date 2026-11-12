@@ -27,7 +27,78 @@
                 }
             </button>
             <button class="btn btn-danger" @onclick="OpenDeleteConfirmation">Delete</button>
+            <button class="btn btn-success" @onclick="ToggleBookMeeting">
+                @(isBooking ? "Cancel booking" : "Book meeting")
+            </button>
         </div>
+
+        @if (bookingSuccess)
+        {
+            <div class="alert alert-success">Meeting booked!</div>
+        }
+
+        @if (isBooking)
+        {
+            <EditForm Model="newBooking" OnValidSubmit="CreateBooking" FormName="create-booking" class="mb-3">
+                <DataAnnotationsValidator />
+
+                @if (bookingError is not null)
+                {
+                    <div class="alert alert-danger">@bookingError</div>
+                }
+
+                <div class="mb-3">
+                    <label for="booking-topic" class="form-label">Topic</label>
+                    <InputText id="booking-topic" class="form-control" @bind-Value="newBooking.Description" />
+                    <ValidationMessage For="() => newBooking.Description" class="text-danger" />
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-4">
+                        <label for="booking-date" class="form-label">Date</label>
+                        <InputDate id="booking-date" class="form-control" @bind-Value="newBooking.Date" />
+                        <ValidationMessage For="() => newBooking.Date" class="text-danger" />
+                    </div>
+                    <div class="col-md-4">
+                        <label for="booking-start" class="form-label">Start</label>
+                        <InputDate Type="InputDateType.Time" id="booking-start" class="form-control" @bind-Value="newBooking.StartTime" />
+                        <ValidationMessage For="() => newBooking.StartTime" class="text-danger" />
+                    </div>
+                    <div class="col-md-4">
+                        <label for="booking-end" class="form-label">End</label>
+                        <InputDate Type="InputDateType.Time" id="booking-end" class="form-control" @bind-Value="newBooking.EndTime" />
+                        <ValidationMessage For="() => newBooking.EndTime" class="text-danger" />
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="booking-employee" class="form-label">Employee</label>
+                        <InputSelect id="booking-employee" class="form-select" @bind-Value="newBooking.EmployeeId">
+                            <option value="">-- Select employee --</option>
+                            @foreach (var employee in employees)
+                            {
+                                <option value="@employee.Id">@employee.FullName</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="() => newBooking.EmployeeId" class="text-danger" />
+                    </div>
+                    <div class="col-md-6">
+                        <label for="booking-customer" class="form-label">Customer</label>
+                        <InputSelect id="booking-customer" class="form-select" @bind-Value="newBooking.CustomerId">
+                            <option value="">-- Select customer --</option>
+                            @foreach (var customer in customers)
+                            {
+                                <option value="@customer.Id">@customer.Name</option>
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="() => newBooking.CustomerId" class="text-danger" />
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-success" disabled="@isSavingBooking">Book</button>
+            </EditForm>
+        }
 
         @if (success)
         {
@@ -87,7 +158,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var booking in conferenceRoom.Bookings)
+                @foreach (var booking in conferenceRoom.Bookings.OrderBy(b => b.StartTime))
                 {
                     <tr>
                         <td>@booking.StartTime</td>
