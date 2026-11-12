@@ -1,7 +1,239 @@
 ﻿@page "/timereport-page"
 
-<h3>TimeReport</h3>
+@using System.ComponentModel.DataAnnotations
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using TheOffice.Application.Interfaces.Services
+@using TheOffice.Domain.Entities
+@using TimeReportEntry = TheOffice.Domain.Entities.TimeReport
+@attribute [Authorize]
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IEmployeeService EmployeeService
+@inject IProjectService ProjectService
+@inject ITimeReportService TimeReportService
+
+<PageTitle>Tidrapportering</PageTitle>
+
+<h1>Registrera tid på projekt</h1>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <p class="text-danger">@errorMessage</p>
+}
+
+@if (isLoading)
+{
+    <p>Laddar...</p>
+}
+else if (employee != null && projects.Count == 0)
+{
+    <p>Det finns inga projekt att registrera tid på.</p>
+}
+else if (employee != null)
+{
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <p class="text-success" role="status">@successMessage</p>
+    }
+
+    <EditForm Model="input" OnValidSubmit="SaveTimeReport" FormName="project-time-report">
+        <DataAnnotationsValidator />
+
+        <fieldset disabled="@isSaving">
+            <div class="mb-3">
+                <label for="project" class="form-label">Kundprojekt</label>
+                <InputSelect id="project" class="form-select" @bind-Value="input.ProjectId" @bind-Value:after="ProjectChanged">
+                    <option value="0">Välj ett projekt</option>
+                    @foreach (var project in projects)
+                    {
+                        <option value="@project.Id">@project.Name</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="() => input.ProjectId" />
+            </div>
+
+            <div class="mb-3">
+                <label for="date" class="form-label">Datum</label>
+                <InputDate id="date" class="form-control" @bind-Value="input.Date" />
+                <ValidationMessage For="() => input.Date" />
+            </div>
+
+            <div class="mb-3">
+                <label for="hours" class="form-label">Antal arbetade timmar</label>
+                <InputNumber id="hours" class="form-control" @bind-Value="input.Hours" min="0.01" step="0.01" />
+                <ValidationMessage For="() => input.Hours" />
+            </div>
+
+            <div class="mb-3">
+                <label for="description" class="form-label">Arbetsbeskrivning</label>
+                <InputTextArea id="description" class="form-control" rows="3" @bind-Value="input.Description" />
+                <ValidationMessage For="() => input.Description" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Spara</button>
+        </fieldset>
+    </EditForm>
+
+    @if (input.ProjectId > 0)
+    {
+        <h2 class="mt-4">Mina tidrapporter för projektet</h2>
+
+        var projectReports = timeReports
+            .Where(report => report.ProjectId == input.ProjectId)
+            .OrderByDescending(report => report.Date)
+            .ToList();
+
+        @if (projectReports.Count == 0)
+        {
+            <p>Inga tidrapporter hittades för projektet.</p>
+        }
+        else
+        {
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Datum</th>
+                        <th>Timmar</th>
+                        <th>Arbetsbeskrivning</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var report in projectReports)
+                    {
+                        <tr>
+                            <td>@report.Date.ToString("yyyy-MM-dd")</td>
+                            <td>@report.Hours</td>
+                            <td>@report.Description</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    }
+}
 
 @code {
+    private Employee? employee;
+    private List<Project> projects = new List<Project>();
+    private List<TimeReportEntry> timeReports = new List<TimeReportEntry>();
+    private TimeReportInput input = new TimeReportInput();
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private string errorMessage = "";
+    private string successMessage = "";
 
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authenticationState.User;
+            var email = user.FindFirst(ClaimTypes.Email)?.Value;
+
+            if (user.Identity?.IsAuthenticated != true || string.IsNullOrWhiteSpace(email))
+            {
+                errorMessage = "Du måste vara inloggad för att registrera tid.";
+                return;
+            }
+
+            var employees = await EmployeeService.GetAllAsync();
+            var matchingEmployees = employees.Where(item =>
+                string.Equals(item.Email.Trim(), email.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
+
+            if (matchingEmployees.Count == 0)
+            {
+                errorMessage = "Det finns ingen anställd med samma e-postadress som ditt konto.";
+                return;
+            }
+
+            if (matchingEmployees.Count > 1)
+            {
+                errorMessage = "Flera anställda har samma e-postadress som ditt konto.";
+                return;
+            }
+
+            employee = matchingEmployees[0];
+            projects = (await ProjectService.GetAllAsync()).ToList();
+            timeReports = (await TimeReportService.GetAllAsync())
+                .Where(report => report.EmployeeId == employee.Id).ToList();
+        }
+        catch (Exception)
+        {
+            employee = null;
+            errorMessage = "Det gick inte att ladda uppgifterna. Ladda om sidan och försök igen.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ProjectChanged()
+    {
+        errorMessage = "";
+        successMessage = "";
+    }
+
+    private async Task SaveTimeReport()
+    {
+        if (employee == null || isSaving)
+        {
+            return;
+        }
+
+        errorMessage = "";
+        successMessage = "";
+
+        if (!projects.Any(project => project.Id == input.ProjectId) || input.Date == null)
+        {
+            errorMessage = "Välj ett projekt och ange ett datum.";
+            return;
+        }
+
+        isSaving = true;
+
+        try
+        {
+            var timeReport = new TimeReportEntry
+            {
+                EmployeeId = employee.Id,
+                ProjectId = input.ProjectId,
+                Date = input.Date.Value,
+                Hours = input.Hours,
+                Description = input.Description.Trim()
+            };
+
+            var savedReport = await TimeReportService.AddAsync(timeReport);
+            timeReports.Add(savedReport);
+            input = new TimeReportInput
+            {
+                ProjectId = savedReport.ProjectId,
+                Date = savedReport.Date
+            };
+            successMessage = "Tidrapporten har sparats.";
+        }
+        catch (Exception)
+        {
+            errorMessage = "Det gick inte att spara tidrapporten. Ladda om sidan och försök igen.";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private class TimeReportInput
+    {
+        [Range(1, int.MaxValue, ErrorMessage = "Välj ett projekt.")]
+        public int ProjectId { get; set; }
+
+        [Required(ErrorMessage = "Ange ett datum.")]
+        public DateOnly? Date { get; set; } = DateOnly.FromDateTime(DateTime.Today);
+
+        [Range(0.01, double.MaxValue, ErrorMessage = "Ange ett antal timmar som är större än noll.")]
+        public decimal Hours { get; set; }
+
+        [Required(ErrorMessage = "Ange en arbetsbeskrivning.")]
+        public string Description { get; set; } = "";
+    }
 }
