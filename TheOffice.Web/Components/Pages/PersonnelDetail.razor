@@ -1,0 +1,72 @@
+﻿@page "/employee-details/{Id:int}"
+@using TheOffice.Application.Interfaces.Services
+@using TheOffice.Domain.Entities
+@using TheOffice.Web.Data
+@inject ApplicationDbContext Dbcontext
+@inject IEmployeeService EmployeeService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Personnel Details</h3>
+</div>
+
+<div>
+    @if (employee == null)
+    {
+        <p>No employees left in the list</p>
+    }
+</div>
+
+<table class="table table-bordered align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>Full Name</th>
+            <th>Social Number</th>
+            <th>Title</th>
+            <th>Email</th>
+            <th>Phone Number</th>
+            <th>Address</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>@employee?.FullName</td>
+            <td>@employee?.SocialNumber</td>
+            <td>@employee?.Title</td>
+            <td>@employee?.Email</td>
+            <td>@employee?.Number</td>
+            <td>@employee?.Address</td>
+        </tr>
+    </tbody>
+</table>
+<div class="d-flex gap-2">
+    <NavLink class="btn btn-primary" href="@($"/edit-personnel/{Id}")">Edit</NavLink>
+    <button class="btn btn-danger btn-sm" @onclick="DeleteEmployee">Delete</button>
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Employee? employee;
+
+    protected override async Task OnInitializedAsync()
+    {
+        employee = await EmployeeService.GetByIdAsync(Id);
+    }
+
+    private async Task DeleteEmployee()
+    {
+        if (employee != null)
+        {
+            bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to delete {employee.FullName}?");
+
+            if (confirmed)
+            {
+                await EmployeeService.DeleteAsync(employee.Id);
+                Navigation.NavigateTo("/personnelregister-page");
+            }
+        }
+    }
+}
