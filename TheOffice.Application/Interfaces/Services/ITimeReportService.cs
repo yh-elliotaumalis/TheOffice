@@ -8,6 +8,7 @@ namespace TheOffice.Application.Interfaces.Services
     public interface ITimeReportService
     {
         Task<IEnumerable<TimeReport>> GetAllAsync();
+        Task<IEnumerable<TimeReport>> GetByEmployeeAndPeriodAsync(int employeeId, DateOnly fromDate, DateOnly toDate);
         Task<TimeReport?> GetByIdAsync(int id);
         Task<TimeReport> AddAsync(TimeReport timeReport);
         Task UpdateAsync(TimeReport timeReport);
