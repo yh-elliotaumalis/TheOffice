@@ -1,0 +1,99 @@
+﻿@page "/employee-schedule"
+@using System.Globalization
+@using Microsoft.AspNetCore.Components.Authorization
+@using TheOffice.Web.Data
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ApplicationDbContext Context
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Schedule for @userName</h3>
+
+    <div class="d-flex align-items-center gap-2">
+        <button class="btn btn-outline-primary btn-sm" @onclick="PreviousWeek">&laquo; Previous</button>
+        <button class="btn btn-primary btn-sm" @onclick="CurrentWeek">Current Week</button>
+        <button class="btn btn-outline-primary btn-sm" @onclick="NextWeek">Next &raquo;</button>
+        <span class="fw-bold ms-2">Week @currentWeekNumber, @currentDate.Year</span>
+    </div>
+</div>
+
+<div class="table-responsive mt-3">
+    <table class="table table-bordered align-middle text-center">
+        <thead class="table-light">
+            <tr>
+                <th style="width: 20%;">Day</th>
+                <th>08:00 - 10:00</th>
+                <th>10:00 - 12:00</th>
+                <th>12:00 - 13:00</th>
+                <th>13:00 - 15:00</th>
+                <th>15:00 - 16:00</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var day in weekDays)
+            {
+                <tr>
+                    <td class="fw-bold bg-light text-start">
+                        @day.ToString("dddd, MMM d", CultureInfo.InvariantCulture)
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td class="bg-light text-muted">Lunch Break</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+
+    <p class="fw-bold mt-2">Total Hours: @TotalWeekHours h</p>
+</div>
+
+@code {
+    private string userName = "Guest";
+    private DateTime currentDate = DateTime.Today;
+    private List<DateTime> weekDays = new();
+    private int currentWeekNumber;
+    private int TotalWeekHours => weekDays.Count * 7;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity != null && user.Identity.IsAuthenticated)
+        {
+            userName = user.Identity.Name ?? "User";
+        }
+
+        LoadWeek();
+    }
+
+    private void LoadWeek()
+    {
+        int diff = (7 + (currentDate.DayOfWeek - DayOfWeek.Monday)) % 7;
+        DateTime monday = currentDate.AddDays(-1 * diff).Date;
+
+        weekDays = Enumerable.Range(0, 5).Select(i => monday.AddDays(i)).ToList();
+        currentWeekNumber = ISOWeek.GetWeekOfYear(monday);
+    }
+
+    private void PreviousWeek()
+    {
+        currentDate = currentDate.AddDays(-7);
+        LoadWeek();
+    }
+
+    private void NextWeek()
+    {
+        currentDate = currentDate.AddDays(7);
+        LoadWeek();
+    }
+
+    private void CurrentWeek()
+    {
+        currentDate = DateTime.Today;
+        LoadWeek();
+    }
+}
