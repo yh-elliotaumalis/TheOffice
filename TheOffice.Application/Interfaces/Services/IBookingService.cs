@@ -12,5 +12,6 @@ namespace TheOffice.Application.Interfaces.Services
         Task<Booking> AddAsync(Booking booking);
         Task UpdateAsync(Booking booking);
         Task DeleteAsync(int id);
+        Task<bool> HasOverlapAsync(int conferenceRoomId, DateTime start, DateTime end);
     }
 }

@@ -36,5 +36,13 @@ namespace TheOffice.Web.Repositories
             context.Bookings.Remove(booking);
             await context.SaveChangesAsync();
         }
+
+        public async Task<bool> HasOverlapAsync(int conferenceRoomId, DateTime start, DateTime end)
+        {
+            return await context.Bookings.AnyAsync(b =>
+                b.ConferenceRoomId == conferenceRoomId &&
+                b.StartTime < end &&
+                b.EndTime > start);
+        }
     }
 }
