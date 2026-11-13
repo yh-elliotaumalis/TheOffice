@@ -1,0 +1,73 @@
+﻿@page "/report-absence"
+@using TheOffice.Application.Interfaces.Repositories
+@using TheOffice.Domain.Entities
+@using TheOffice.Web.Data
+@inject IEmployeeAbsenceRepository EmployeeAbsenceRepo
+@inject IEmployeeRepository EmployeeRepo
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ApplicationDbContext Context
+
+
+<h3 style="text-align: center;">Report Absence</h3>
+
+<div style="display: flex; flex-direction: column; align-items: center; gap: 1.2rem; border: 1px solid #ccc; border-radius: 8px; width: 50%; margin: 2rem auto; padding: 2rem;">
+
+    <div style="width: 70%;">
+        <label style="display: block; font-weight: bold; margin-bottom: 0.4rem;">Reason</label>
+        <select @bind="newAbsence.Type" style="width: 100%; padding: 0.6rem 1rem; font-size: 1rem; border-radius: 6px; border: 1px solid #bbb; background-color: white; cursor: pointer;">
+            <option value="Sick Leave">Sick Leave</option>
+            <option value="Vacation">Vacation</option>
+            <option value="Parental Leave">Parental Leave</option>
+            <option value="Care Of Sick Child">Care Of Sick Child</option>
+        </select>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; gap: 1rem; width: 70%;">
+        <div style="flex: 1;">
+            <label style="display: block; font-weight: bold; margin-bottom: 0.4rem;">From</label>
+            <input style="width: 100%; box-sizing: border-box; padding: 0.5rem; font-size: 1rem; border-radius: 6px; border: 1px solid #bbb;" type="date" @bind="newAbsence.StartDate" @bind:after="() => { if (newAbsence.EndDate < newAbsence.StartDate) newAbsence.EndDate = newAbsence.StartDate; }" />
+        </div>
+
+        <div style="flex: 1;">
+            <label style="display: block; font-weight: bold; margin-bottom: 0.4rem;">To</label>
+            <input type="date" @bind="newAbsence.EndDate" min="@newAbsence.StartDate.ToString("yyyy-MM-dd")" style="width: 100%; box-sizing: border-box; padding: 0.5rem; font-size: 1rem; border-radius: 6px; border: 1px solid #bbb;" />
+        </div>
+    </div>
+
+    <div style="width: 70%;">
+        <label style="display: block; font-weight: bold; margin-bottom: 0.4rem;">Description</label>
+        <textarea @bind="newAbsence.Description" rows="3" placeholder="Enter reason or details..." style="width: 100%; box-sizing: border-box; padding: 0.6rem; font-size: 1rem; border-radius: 6px; border: 1px solid #bbb; font-family: inherit;"></textarea>
+    </div>
+
+    <button @onclick="SubmitAbsence" style="width: 70%; padding: 0.7rem; font-size: 1rem; font-weight: bold; color: white; background-color: #007bff; border: none; border-radius: 6px; cursor: pointer;">
+        Submit
+    </button>
+
+</div>
+
+@code {
+    private EmployeeAbsence newAbsence = new()
+        {
+            Type = "Sick Leave",
+            StartDate = DateTime.Today,
+            EndDate = DateTime.Today,
+        };
+
+    private async Task SubmitAbsence()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var userName = authState.User.Identity?.Name;
+
+        var employee = (await EmployeeRepo.GetAllAsync()).FirstOrDefault(e => e.Email == userName);
+
+        if (employee != null)
+        {
+            newAbsence.EmployeeId = employee.Id;
+
+            await EmployeeAbsenceRepo.AddAsync(newAbsence);
+
+            Navigation.NavigateTo("/employee-schedule");
+        }
+    }
+}

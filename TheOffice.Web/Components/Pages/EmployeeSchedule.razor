@@ -45,8 +45,10 @@
         </tbody>
     </table>
 
-
-    <p class="fw-bold mt-2">Total Hours: @TotalWeekHours h</p>
+    <div style="display: flex; justify-content: space-between;">
+        <p class="fw-bold mt-2">Total Hours: @TotalWeekHours h</p>
+        <NavLink style="padding: 0.7rem 0.4rem; background-color: green; border-radius: 0.6rem; text-decoration: none; color: white;" href="@($"/report-absence")">Absence</NavLink>
+    </div>
 </div>
 
 @code {
