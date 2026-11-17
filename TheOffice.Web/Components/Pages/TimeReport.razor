@@ -39,7 +39,7 @@ else if (employee != null)
     <EditForm Model="input" OnValidSubmit="SaveTimeReport" FormName="project-time-report">
         <DataAnnotationsValidator />
 
-        <fieldset disabled="@isSaving">
+        <fieldset disabled="@(isSaving || isSearching)">
             <div class="mb-3">
                 <label for="project" class="form-label">Kundprojekt</label>
                 <InputSelect id="project" class="form-select" @bind-Value="input.ProjectId" @bind-Value:after="ProjectChanged">
@@ -112,15 +112,98 @@ else if (employee != null)
     }
 }
 
+@if (!isLoading && (employee != null || isHr))
+{
+    <h2 class="mt-4">Visa arbetstid</h2>
+
+    <fieldset disabled="@(isSearching || isSaving)">
+        @if (isHr)
+        {
+            <div class="mb-3">
+                <label for="report-employee" class="form-label">Anställd</label>
+                <select id="report-employee" class="form-select" @bind="selectedEmployeeId" @bind:after="ClearPeriodReport">
+                    <option value="0">Välj en anställd</option>
+                    @foreach (var person in employees)
+                    {
+                        <option value="@person.Id">@person.FullName</option>
+                    }
+                </select>
+            </div>
+        }
+        else
+        {
+            <p>Anställd: @employee?.FullName</p>
+        }
+
+        <div class="mb-3">
+            <label for="report-from" class="form-label">Från datum</label>
+            <input id="report-from" type="date" class="form-control" @bind="fromDate" @bind:after="ClearPeriodReport" />
+        </div>
+
+        <div class="mb-3">
+            <label for="report-to" class="form-label">Till datum</label>
+            <input id="report-to" type="date" class="form-control" @bind="toDate" @bind:after="ClearPeriodReport" />
+        </div>
+
+        <button type="button" class="btn btn-primary" @onclick="ShowPeriodReport">Visa arbetstid</button>
+    </fieldset>
+
+    @if (!string.IsNullOrEmpty(reportErrorMessage))
+    {
+        <p class="text-danger" role="alert">@reportErrorMessage</p>
+    }
+
+    @if (hasSearched)
+    {
+        @if (periodReports.Count == 0)
+        {
+            <p>Ingen arbetstid finns för perioden.</p>
+        }
+        else
+        {
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Datum</th>
+                        <th>Projekt</th>
+                        <th>Timmar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var report in periodReports)
+                    {
+                        <tr>
+                            <td>@report.Date.ToString("yyyy-MM-dd")</td>
+                            <td>@report.Project.Name</td>
+                            <td>@report.Hours</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+
+        <p><strong>Totalt: @periodReports.Sum(report => report.Hours) timmar</strong></p>
+    }
+}
+
 @code {
     private Employee? employee;
+    private List<Employee> employees = new List<Employee>();
     private List<Project> projects = new List<Project>();
     private List<TimeReportEntry> timeReports = new List<TimeReportEntry>();
+    private List<TimeReportEntry> periodReports = new List<TimeReportEntry>();
     private TimeReportInput input = new TimeReportInput();
+    private int selectedEmployeeId;
+    private DateOnly? fromDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1);
+    private DateOnly? toDate = DateOnly.FromDateTime(DateTime.Today);
+    private bool isHr = false;
     private bool isLoading = true;
     private bool isSaving = false;
+    private bool isSearching = false;
+    private bool hasSearched = false;
     private string errorMessage = "";
     private string successMessage = "";
+    private string reportErrorMessage = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -136,30 +219,36 @@ else if (employee != null)
                 return;
             }
 
-            var employees = await EmployeeService.GetAllAsync();
+            isHr = user.IsInRole("HR");
+            employees = (await EmployeeService.GetAllAsync()).OrderBy(item => item.FullName).ToList();
             var matchingEmployees = employees.Where(item =>
                 string.Equals(item.Email.Trim(), email.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
 
-            if (matchingEmployees.Count == 0)
+            if (matchingEmployees.Count == 0 && !isHr)
             {
                 errorMessage = "Det finns ingen anställd med samma e-postadress som ditt konto.";
                 return;
             }
 
-            if (matchingEmployees.Count > 1)
+            if (matchingEmployees.Count > 1 && !isHr)
             {
                 errorMessage = "Flera anställda har samma e-postadress som ditt konto.";
                 return;
             }
 
-            employee = matchingEmployees[0];
-            projects = (await ProjectService.GetAllAsync()).ToList();
-            timeReports = (await TimeReportService.GetAllAsync())
-                .Where(report => report.EmployeeId == employee.Id).ToList();
+            if (matchingEmployees.Count == 1)
+            {
+                employee = matchingEmployees[0];
+                selectedEmployeeId = employee.Id;
+                projects = (await ProjectService.GetAllAsync()).ToList();
+                timeReports = (await TimeReportService.GetAllAsync())
+                    .Where(report => report.EmployeeId == employee.Id).ToList();
+            }
         }
         catch (Exception)
         {
             employee = null;
+            isHr = false;
             errorMessage = "Det gick inte att ladda uppgifterna. Ladda om sidan och försök igen.";
         }
         finally
@@ -174,9 +263,74 @@ else if (employee != null)
         successMessage = "";
     }
 
+    private void ClearPeriodReport()
+    {
+        periodReports.Clear();
+        hasSearched = false;
+        reportErrorMessage = "";
+    }
+
+    private async Task ShowPeriodReport()
+    {
+        if (isSearching)
+        {
+            return;
+        }
+
+        ClearPeriodReport();
+
+        if (fromDate == null || toDate == null)
+        {
+            reportErrorMessage = "Välj från-datum och till-datum.";
+            return;
+        }
+
+        if (fromDate.Value > toDate.Value)
+        {
+            reportErrorMessage = "Från-datum får inte vara efter till-datum.";
+            return;
+        }
+
+        if (!isHr && employee != null)
+        {
+            selectedEmployeeId = employee.Id;
+        }
+
+        if (!employees.Any(item => item.Id == selectedEmployeeId))
+        {
+            reportErrorMessage = "Välj en anställd.";
+            return;
+        }
+
+        isSearching = true;
+
+        try
+        {
+            periodReports = (await TimeReportService.GetByEmployeeAndPeriodAsync(
+                selectedEmployeeId, fromDate.Value, toDate.Value)).ToList();
+            hasSearched = true;
+        }
+        catch (UnauthorizedAccessException exception)
+        {
+            reportErrorMessage = exception.Message;
+        }
+        catch (ArgumentException exception)
+        {
+            reportErrorMessage = exception.Message;
+        }
+        catch (Exception)
+        {
+            reportErrorMessage = "Det gick inte att hämta arbetstiden.";
+        }
+        finally
+        {
+            isSearching = false;
+        }
+    }
+
     private async Task SaveTimeReport()
     {
-        if (employee == null || isSaving)
+        if (employee == null || isSaving || isSearching)
         {
             return;
         }
@@ -211,6 +365,11 @@ else if (employee != null)
                 Date = savedReport.Date
             };
             successMessage = "Tidrapporten har sparats.";
+
+            if (hasSearched)
+            {
+                await ShowPeriodReport();
+            }
         }
         catch (Exception)
         {

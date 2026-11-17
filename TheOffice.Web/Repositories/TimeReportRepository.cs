@@ -12,6 +12,16 @@ namespace TheOffice.Web.Repositories
             return await context.TimeReports.ToListAsync();
         }
 
+        public async Task<IEnumerable<TimeReport>> GetByEmployeeAndPeriodAsync(int employeeId, DateOnly fromDate, DateOnly toDate)
+        {
+            return await context.TimeReports
+                .Include(report => report.Project)
+                .Where(report => report.EmployeeId == employeeId &&
+                                 report.Date >= fromDate && report.Date <= toDate)
+                .OrderBy(report => report.Date)
+                .ToListAsync();
+        }
+
         public async Task<TimeReport?> GetByIdAsync(int id)
         {
             return await context.TimeReports
