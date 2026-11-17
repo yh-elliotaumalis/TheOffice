@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 using TheOffice.Application.Interfaces.Services;
 using TheOffice.Domain.Entities;
+using TheOffice.Web.Data;
 
 namespace TheOffice.Web.Components.Pages;
 
@@ -25,9 +28,6 @@ public class CreateBookingModel
     [Required(ErrorMessage = "Pick an end time.")]
     public TimeOnly? EndTime { get; set; }
 
-    [Required(ErrorMessage = "Pick an employee.")]
-    public int? EmployeeId { get; set; }
-
     [Required(ErrorMessage = "Pick a customer.")]
     public int? CustomerId { get; set; }
 }
@@ -37,10 +37,13 @@ public partial class ConferenceRoomDetails
     [Parameter]
     public int Id { get; set; }
 
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationState { get; set; } = default!;
+
     private readonly IConferenceRoomService _conferenceRoomService;
     private readonly IBookingService _bookingService;
-    private readonly IEmployeeService _employeeService;
     private readonly ICustomerService _customerService;
+    private readonly UserManager<ApplicationUser> _userManager;
     private readonly NavigationManager _navigationManager;
 
     private bool isBooking = false;
@@ -48,7 +51,7 @@ public partial class ConferenceRoomDetails
     private bool bookingSuccess = false;
     private string? bookingError = null;
     private CreateBookingModel newBooking = new CreateBookingModel();
-    private List<Employee> employees = [];
+    private int? currentEmployeeId;
     private List<Customer> customers = [];
     private ConferenceRoom? conferenceRoom;
     private bool isLoading = true;
@@ -61,21 +64,22 @@ public partial class ConferenceRoomDetails
     public ConferenceRoomDetails(
         IConferenceRoomService conferenceRoomService,
         IBookingService bookingService,
-        IEmployeeService employeeService,
         ICustomerService customerService,
+        UserManager<ApplicationUser> userManager,
         NavigationManager navigationManager)
     {
         _conferenceRoomService = conferenceRoomService;
         _bookingService = bookingService;
-        _employeeService = employeeService;
         _customerService = customerService;
+        _userManager = userManager;
         _navigationManager = navigationManager;
     }
 
     protected override async Task OnInitializedAsync()
     {
         conferenceRoom = await _conferenceRoomService.GetByIdAsync(Id);
-        employees = (await _employeeService.GetAllAsync()).OrderBy(e => e.FullName).ToList();
+        var user = await _userManager.GetUserAsync((await authenticationState).User);
+        currentEmployeeId = user?.EmployeeId;
         customers = (await _customerService.GetAllAsync()).OrderBy(c => c.Name).ToList();
         isLoading = false;
         await base.OnInitializedAsync();
@@ -122,7 +126,7 @@ public partial class ConferenceRoomDetails
                 Description = newBooking.Description.Trim(),
                 StartTime = start,
                 EndTime = end,
-                EmployeeId = newBooking.EmployeeId.Value,
+                EmployeeId = currentEmployeeId.Value,
                 CustomerId = newBooking.CustomerId.Value,
                 ConferenceRoomId = conferenceRoom.Id
             };

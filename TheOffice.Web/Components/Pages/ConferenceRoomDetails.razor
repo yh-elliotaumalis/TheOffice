@@ -15,7 +15,7 @@
     {
         <h2 class="mb-3">@conferenceRoom.Name</h2>
 
-        <div class="mb-3">
+        <div class="mb-3 d-flex gap-1">
             <button class="btn btn-primary" @onclick="ToggleEditConferenceRoom">
                 @if (isEditing)
                 {
@@ -27,9 +27,12 @@
                 }
             </button>
             <button class="btn btn-danger" @onclick="OpenDeleteConfirmation">Delete</button>
-            <button class="btn btn-success" @onclick="ToggleBookMeeting">
-                @(isBooking ? "Cancel booking" : "Book meeting")
-            </button>
+            @if (currentEmployeeId is not null)
+            {
+                <button class="btn btn-success" @onclick="ToggleBookMeeting">
+                    @(isBooking ? "Cancel booking" : "Book meeting")
+                </button>
+            }
         </div>
 
         @if (bookingSuccess)
@@ -71,29 +74,16 @@
                     </div>
                 </div>
 
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label for="booking-employee" class="form-label">Employee</label>
-                        <InputSelect id="booking-employee" class="form-select" @bind-Value="newBooking.EmployeeId">
-                            <option value="">-- Select employee --</option>
-                            @foreach (var employee in employees)
-                            {
-                                <option value="@employee.Id">@employee.FullName</option>
-                            }
-                        </InputSelect>
-                        <ValidationMessage For="() => newBooking.EmployeeId" class="text-danger" />
-                    </div>
-                    <div class="col-md-6">
-                        <label for="booking-customer" class="form-label">Customer</label>
-                        <InputSelect id="booking-customer" class="form-select" @bind-Value="newBooking.CustomerId">
-                            <option value="">-- Select customer --</option>
-                            @foreach (var customer in customers)
-                            {
-                                <option value="@customer.Id">@customer.Name</option>
-                            }
-                        </InputSelect>
-                        <ValidationMessage For="() => newBooking.CustomerId" class="text-danger" />
-                    </div>
+                <div class="mb-3">
+                    <label for="booking-customer" class="form-label">Customer</label>
+                    <InputSelect id="booking-customer" class="form-select" @bind-Value="newBooking.CustomerId">
+                        <option value="">-- Select customer --</option>
+                        @foreach (var customer in customers)
+                        {
+                            <option value="@customer.Id">@customer.Name</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="() => newBooking.CustomerId" class="text-danger" />
                 </div>
 
                 <button type="submit" class="btn btn-success" disabled="@isSavingBooking">Book</button>
