@@ -41,7 +41,7 @@ else
                 {
                     <tr>
                         <td>@customer.Id</td>
-                        <td>@customer.Name</td>
+                        <td><a href="@($"customers/{customer.Id}")">@customer.Name</a></td>
                     </tr>
                 }
             </tbody>
