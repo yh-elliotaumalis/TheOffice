@@ -1,0 +1,44 @@
+﻿@page "/manage-users"
+
+<PageTitle>Manage Users</PageTitle>
+
+<div class="container">
+    <h1 class="mb-3">Manage Users</h1>
+
+    <input class="mb-2 form-control" id="user-search" type="search" @bind="search" @bind:event="oninput" @bind:after="SearchUsers" placeholder="Search users" />
+
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Roles</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (users == null)
+            {
+                <tr>
+                    <td colspan="2">Loading users...</td>
+                </tr>
+            }
+            else if (!users.Any())
+            {
+                <tr>
+                    <td colspan="2">No users found.</td>
+                </tr>
+            }
+            else
+            {
+                @foreach (var user in users)
+                {
+                    <tr>
+                        <td>
+                            <a href="/user/@user.Id">@user.Email</a>
+                        </td>
+                        <td>@userRoles[user.Id]</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>

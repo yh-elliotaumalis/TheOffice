@@ -36,6 +36,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
         options.SignIn.RequireConfirmedAccount = true;
         options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
     })
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
@@ -64,6 +65,8 @@ builder.Services.AddScoped<ITimeReportRepository, TimeReportRepository>();
 builder.Services.AddScoped<IWorkScheduleRepository, WorkScheduleRepository>();
 
 var app = builder.Build();
+
+await Roles.SeedAsync(app.Services);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

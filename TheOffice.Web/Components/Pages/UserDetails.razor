@@ -1,0 +1,106 @@
+@page "/user/{Id}"
+@using TheOffice.Web.Data
+
+<PageTitle>User</PageTitle>
+
+<div class="container">
+    @if (isLoading)
+    {
+        <p>Loading user details...</p>
+    }
+    else if (user is null)
+    {
+        <p>User not found.</p>
+    }
+    else
+    {
+        <h2 class="mb-3">@user.Email</h2>
+
+        <div class="mb-3">
+            <button class="btn btn-primary" @onclick="ToggleEditUser">
+                @if (isEditing)
+                {
+                    <span>Cancel</span>
+                }
+                else
+                {
+                    <span>Edit User</span>
+                }
+            </button>
+        </div>
+
+        @if (success)
+        {
+            <div class="alert alert-success">User updated successfully!</div>
+        }
+
+        @if (isEditing)
+        {
+            @if (errorMessage is not null)
+            {
+                <div class="alert alert-danger">@errorMessage</div>
+            }
+
+            <EditForm Model="editUser" OnValidSubmit="UpdateUser" class="mb-3">
+                <div class="mb-3">
+                    <label class="form-label">Roles</label>
+                    @foreach (var role in Roles.All)
+                    {
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="role-@role"
+                                   checked="@editUser.Roles.Contains(role)"
+                                   @onchange="e => ToggleRole(role, (bool)e.Value!)" />
+                            <label class="form-check-label" for="role-@role">@role</label>
+                        </div>
+                    }
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="user-employee" class="form-label">Employee</label>
+                        <InputSelect id="user-employee" class="form-select" @bind-Value="editUser.EmployeeId">
+                            <option value="">-- None --</option>
+                            @foreach (var employee in employees)
+                            {
+                                <option value="@employee.Id">@employee.FullName</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="user-customer" class="form-label">Customer</label>
+                        <InputSelect id="user-customer" class="form-select" @bind-Value="editUser.CustomerId">
+                            <option value="">-- None --</option>
+                            @foreach (var customer in customers)
+                            {
+                                <option value="@customer.Id">@customer.Name</option>
+                            }
+                        </InputSelect>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-success">Update</button>
+            </EditForm>
+        }
+
+        <table class="table">
+            <tbody>
+                <tr>
+                    <th>Email</th>
+                    <td>@user.Email</td>
+                </tr>
+                <tr>
+                    <th>Roles</th>
+                    <td>@(userRoles.Any() ? string.Join(", ", userRoles) : "None")</td>
+                </tr>
+                <tr>
+                    <th>Employee</th>
+                    <td>@(user.Employee?.FullName ?? "None")</td>
+                </tr>
+                <tr>
+                    <th>Customer</th>
+                    <td>@(user.Customer?.Name ?? "None")</td>
+                </tr>
+            </tbody>
+        </table>
+    }
+</div>
