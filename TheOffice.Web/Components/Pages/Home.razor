@@ -2,4 +2,121 @@
 
 <PageTitle>Home</PageTitle>
 
-<h1>The World!</h1>
+<div class="hero-section">
+    <h1>Welcome to Webbyrån Måsvingen</h1>
+    <p class="homepage-p">Websites Built for Digital Campaigns</p>
+
+    <div class="hero-buttons">
+        <a href="/booking-page" class="btn btn-primary btn-lg fw-bold">Book a Meeting</a>
+        <a href="/contact" class="btn btn-outline-light btn-lg fw-bold">Contact Us</a>
+    </div>
+</div>
+
+<div class="services-container">
+    
+    <h2 class="our-services-title">Our Services</h2>
+
+    <article class="services-p-container">
+
+        <div class="p-card">
+            <p class="p-itself">Campaign Landing Pages – High-converting, tailored websites built specifically for your marketing campaigns and product launches.</p>
+        </div>
+
+        <div class="p-card">
+            <p class="p-itself">Custom Web Design & Development – Modern, responsive websites designed to strengthen your brand and work seamlessly across all devices.</p>
+        </div>
+
+        <div class="p-card">
+            <p class="p-itself">UX/UI Design & Optimization – User-friendly interfaces and performance to maximize engagement and turn visitors into customers.</p>
+        </div>
+
+    </article>
+        <NavLink class="contact-us-link" href="/contact">Contact Us</NavLink>
+</div>
+
+<style>
+    article.content {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .hero-section {
+        background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url('https://images.unsplash.com/photo-1482062364825-616fd23b8fc1?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D');
+        background-size: cover;
+        background-position: center;
+        height: 90vh;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        color: white;
+    }
+
+    .homepage-p {
+        font-size: clamp(1rem, 2vw, 1.7rem);
+    }
+
+    .hero-buttons {
+        display: flex;
+        gap: 0.8rem;
+    }
+
+    .our-services-title {
+        margin-top: 3rem;
+        font-size: 4rem;
+        font-family: 'Times New Roman', Times, serif;
+    }
+
+    .services-container {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-color: lavender;
+    }
+
+    .services-p-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        padding: 0 2rem;
+        margin-top: 2rem;
+
+    }
+
+    .p-card {
+        display: flex;
+        text-align: center;
+        border: 1px solid black;
+        border-radius: 1.2rem;
+        font-size: clamp(0.5rem, 3vw, 1.2rem);
+        padding: 1.2rem;
+        background-color: lavender;
+    }
+
+    .p-itself {
+        font-size: 1.2rem;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .contact-us-link {
+        padding: 0.6rem 1.2rem;
+        text-decoration: none;
+        background-color: green;
+        color: white;
+        border-radius: 0.9rem;
+        font-size: 1.2rem;
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    @@media (max-width: 768px) {
+    .services-p-container {
+        flex-direction: column;
+        padding: 0 1rem;
+    }
+}
+</style>

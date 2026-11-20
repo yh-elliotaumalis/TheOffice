@@ -7,6 +7,7 @@
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthStateProvider
 @inject ApplicationDbContext Context
+@rendermode InteractiveServer
 
 
 <h3 style="text-align: center;">Report Absence</h3>
@@ -40,6 +41,11 @@
         <textarea @bind="newAbsence.Description" rows="3" placeholder="Enter reason or details..." style="width: 100%; box-sizing: border-box; padding: 0.6rem; font-size: 1rem; border-radius: 6px; border: 1px solid #bbb; font-family: inherit;"></textarea>
     </div>
 
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <p style="color: red; font-weight: bold;">@errorMessage</p>
+    }
+
     <button @onclick="SubmitAbsence" style="width: 70%; padding: 0.7rem; font-size: 1rem; font-weight: bold; color: white; background-color: #007bff; border: none; border-radius: 6px; cursor: pointer;">
         Submit
     </button>
@@ -47,6 +53,8 @@
 </div>
 
 @code {
+    private string? errorMessage;
+
     private EmployeeAbsence newAbsence = new()
         {
             Type = "Sick Leave",
@@ -68,6 +76,10 @@
             await EmployeeAbsenceRepo.AddAsync(newAbsence);
 
             Navigation.NavigateTo("/employee-schedule");
+        }
+        else
+        {
+            errorMessage = $"Hittade ingen anställd med e-post: '{userName ?? "Inte inloggad"}'";
         }
     }
 }
