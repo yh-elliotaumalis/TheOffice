@@ -1,0 +1,111 @@
+﻿@page "/client-project"
+@using TheOffice.Application.Interfaces.Services
+@using TheOffice.Domain.Entities
+@inject ICustomerService CustomerService
+@inject IProjectService ProjectService
+
+@rendermode InteractiveServer
+
+<div class="container mt-4">
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+
+    <div class="p-3 mb-4 d-flex flex-row justify-content-between align-items-center">
+        <h3>Client Projects</h3>
+        <div class="col-md-1 d-flex align-items-end">
+            <NavLink href="/create-project" type="submit" class="btn btn-primary p-2 text-nowrap">Create Project</NavLink>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <p>Loading projects...</p>
+    }
+    else if (!projects.Any())
+    {
+        <div class="alert alert-info">No projects found yet. Create one above!</div>
+    }
+    else
+    {
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Project Name</th>
+                    <th>Customer</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var project in projects)
+                {
+                    <tr>
+                        <td>
+                            <NavLink href="@($"/project/{project.Id}")" class="text-decoration-none fw-bold">
+                                @project.Name
+                            </NavLink>
+                        </td>
+
+                        <td>@(customers.FirstOrDefault(c => c.Id == project.CustomerId)?.Name ?? "Unknown")</td>
+                        <td><span class="badge bg-success">Active</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    private List<Customer> customers = new();
+    private List<Project> projects = new();
+    private Project newProject = new();
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        try
+        {
+            isLoading = true;
+            customers = (await CustomerService.GetAllAsync()).ToList();
+            projects = (await ProjectService.GetAllAsync()).ToList();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading data: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task CreateProject()
+    {
+        try
+        {
+            errorMessage = null;
+
+            if (newProject.CustomerId == 0)
+            {
+                errorMessage = "Please select a customer.";
+                return;
+            }
+
+            await ProjectService.AddAsync(newProject);
+            newProject = new Project();
+            await LoadData();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Could not create project: {ex.Message}";
+        }
+    }
+}
