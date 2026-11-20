@@ -7,14 +7,36 @@ namespace TheOffice.Web.Repositories
 {
     public class BookingRepository(ApplicationDbContext context) : IBookingRepository
     {
+        private IQueryable<Booking> GetIncludes()
+        {
+            return context.Bookings
+            .Include(b => b.ConferenceRoom)
+            .Include(b => b.Employee)
+            .Include(b => b.Customer);
+        }
         public async Task<IEnumerable<Booking>> GetAllAsync()
         {
-            return await context.Bookings.ToListAsync();
+            return await GetIncludes()
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Booking>> GetByEmployeeIdAsync(int employeeId)
+        {
+            return await GetIncludes()
+                .Where(b => b.EmployeeId == employeeId)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Booking>> GetByCustomerIdAsync(int customerId)
+        {
+            return await GetIncludes()
+                .Where(b => b.CustomerId == customerId)
+                .ToListAsync();
         }
 
         public async Task<Booking?> GetByIdAsync(int id)
         {
-            return await context.Bookings
+            return await GetIncludes()
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
         public async Task<Booking> AddAsync(Booking booking)

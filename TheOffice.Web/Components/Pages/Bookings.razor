@@ -1,0 +1,64 @@
+﻿@page "/booking-page"
+
+<PageTitle>Bookings</PageTitle>
+
+@* public class Booking
+{
+public int Id { get; set; }
+public string Description { get; set; } = "";
+public DateTime StartTime { get; set; }
+public DateTime EndTime { get; set; }
+public Employee Employee { get; set; }
+public int EmployeeId { get; set; }
+public Customer Customer { get; set; }
+public int CustomerId { get; set; }
+public ConferenceRoom ConferenceRoom { get; set; }
+public int ConferenceRoomId { get; set; }
+} *@
+
+<div class="container">
+    <h1 class="mb-3">Bookings</h1>
+
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Room Name</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Employee</th>
+                <th>Customer</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (MyBookings == null)
+            {
+                <tr>
+                    <td colspan="2">Loading bookings...</td>
+                </tr>
+            }
+            else if (!MyBookings.Any())
+            {
+                <tr>
+                    <td colspan="2">No planned bookings.</td>
+                </tr>
+            }
+            else
+            {
+                @foreach (var booking in MyBookings)
+                {
+                    <tr>
+                        <td>
+                            <a href="/conference-room/@booking.ConferenceRoomId">@booking.ConferenceRoom.Name</a>
+                        </td>
+                        <td>@booking.StartTime</td>
+                        <td>@booking.EndTime</td>
+                        <td>@booking.Employee.FullName</td>
+                        <td>@booking.Customer.Name</td>
+                        <td>@booking.Description</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>

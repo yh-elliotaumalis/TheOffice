@@ -27,6 +27,16 @@ namespace TheOffice.Web.Services
             return bookingRepository.GetAllAsync();
         }
 
+        public Task<IEnumerable<Booking>> GetByCustomerIdAsync(int customerId)
+        {
+            return bookingRepository.GetByCustomerIdAsync(customerId);
+        }
+
+        public Task<IEnumerable<Booking>> GetByEmployeeIdAsync(int employeeId)
+        {
+            return bookingRepository.GetByEmployeeIdAsync(employeeId);
+        }
+
         public Task<Booking?> GetByIdAsync(int id)
         {
             return bookingRepository.GetByIdAsync(id);
