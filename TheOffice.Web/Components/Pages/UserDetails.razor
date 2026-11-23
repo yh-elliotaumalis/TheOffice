@@ -1,4 +1,6 @@
 @page "/user/{Id}"
+@attribute [Authorize(Roles = "Admin")]
+@using Microsoft.AspNetCore.Authorization
 @using TheOffice.Web.Data
 
 <PageTitle>User</PageTitle>

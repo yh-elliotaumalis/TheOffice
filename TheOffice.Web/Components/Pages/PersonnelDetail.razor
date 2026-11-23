@@ -1,4 +1,6 @@
 ﻿@page "/employee-details/{Id:int}"
+@attribute [Authorize(Roles = "Admin")]
+@using Microsoft.AspNetCore.Authorization
 @using TheOffice.Application.Interfaces.Services
 @using TheOffice.Domain.Entities
 @using TheOffice.Web.Data
