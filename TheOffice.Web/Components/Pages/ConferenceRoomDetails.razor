@@ -1,5 +1,6 @@
 ﻿@page "/conference-room/{Id:int}"
-
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin,Employee")]
 <PageTitle>Conference Room</PageTitle>
 
 <div class="container">

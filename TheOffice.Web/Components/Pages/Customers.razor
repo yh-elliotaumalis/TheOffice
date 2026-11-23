@@ -1,4 +1,6 @@
 ﻿@page "/customers"
+@attribute [Authorize(Roles = "Admin,Employee")]
+@using Microsoft.AspNetCore.Authorization
 @using TheOffice.Application.Interfaces.Services
 @using TheOffice.Domain.Entities
 @inject ICustomerService CustomerService

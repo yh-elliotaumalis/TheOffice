@@ -17,26 +17,41 @@
         </div>
     </div>
     <div class="d-flex align-items-center justify-content-center mx-auto gap-1">
+        <AuthorizeView Roles="Admin">
+            <Authorized>
+                <NavLink class="nav-link fs-6 fw-semibold py-2 px-3 text-nowrap text-white"
+                         href="personnelregister-page">
+                    Personnel Register
+                </NavLink>
+            </Authorized>
+        </AuthorizeView>
 
-        <NavLink class="nav-link fs-6 fw-semibold py-2 px-3 text-nowrap text-white"
-                 href="personnelregister-page">
-            Personnel Register
-        </NavLink>
+        <AuthorizeView Roles="Admin,Employee">
+            <Authorized>
+                <NavLink class="nav-link fs-6 fw-semibold py-2 px-3 text-nowrap text-white"
+                         href="customers">
+                    Customer Register
+                </NavLink>
+            </Authorized>
+        </AuthorizeView>
 
-        <NavLink class="nav-link fs-6 fw-semibold py-2 px-3 text-nowrap text-white"
-                 href="customers">
-            Customer Register
-        </NavLink>
+        <AuthorizeView>
+            <Authorized>
+                <NavLink class="nav-link fs-6 fw-semibold py-2 px-3 text-nowrap text-white"
+                         href="booking-page">
+                    Bookings
+                </NavLink>
+            </Authorized>
+        </AuthorizeView>
 
-        <NavLink class="nav-link fs-6 fw-semibold py-2 px-3 text-nowrap text-white"
-                 href="booking-page">
-            Bookings
-        </NavLink>
-
-        <NavLink class="nav-link fs-6 fw-semibold py-2 px-3 text-nowrap text-white"
-                 href="timereport-page">
-            Time Report
-        </NavLink>
+        <AuthorizeView Roles="Admin,Employee">
+            <Authorized>
+                <NavLink class="nav-link fs-6 fw-semibold py-2 px-3 text-nowrap text-white"
+                         href="timereport-page">
+                    Time Report
+                </NavLink>
+            </Authorized>
+        </AuthorizeView>
 
         <NavLink class="nav-link fs-6 fw-semibold py-2 px-3 text-nowrap text-white"
                  href="billing-page">
@@ -48,15 +63,23 @@
             Contact Us
         </NavLink>
 
-        <NavLink class="nav-link fs-6 fw-semibold py-2 px-3 text-nowrap text-white"
-                 href="conference-rooms">
-            Conference Rooms
-        </NavLink>
+        <AuthorizeView Roles="Admin,Employee">
+            <Authorized>
+                <NavLink class="nav-link fs-6 fw-semibold py-2 px-3 text-nowrap text-white"
+                         href="conference-rooms">
+                    Conference Rooms
+                </NavLink>
+            </Authorized>
+        </AuthorizeView>
 
-        <NavLink class="nav-link fs-6 fw-semibold py-2 px-3 text-nowrap text-white"
-                 href="manage-users">
-            Manage Users
-        </NavLink>
+        <AuthorizeView Roles="Admin">
+            <Authorized>
+                <NavLink class="nav-link fs-6 fw-semibold py-2 px-3 text-nowrap text-white"
+                         href="manage-users">
+                    Manage Users
+                </NavLink>
+            </Authorized>
+        </AuthorizeView>
 
     </div>
 

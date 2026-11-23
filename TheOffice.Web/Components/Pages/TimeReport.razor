@@ -1,16 +1,19 @@
 ﻿@page "/timereport-page"
-
+@attribute [Authorize(Roles = "Admin,Employee")]
 @using System.ComponentModel.DataAnnotations
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
 @using TheOffice.Application.Interfaces.Services
 @using TheOffice.Domain.Entities
+@using TheOffice.Web.Data
 @using TimeReportEntry = TheOffice.Domain.Entities.TimeReport
 @attribute [Authorize]
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IEmployeeService EmployeeService
 @inject IProjectService ProjectService
 @inject ITimeReportService TimeReportService
+@inject UserManager<ApplicationUser> _userManager
 
 <PageTitle>Tidrapportering</PageTitle>
 
@@ -210,40 +213,30 @@ else if (employee != null)
         try
         {
             var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            var user = authenticationState.User;
-            var email = user.FindFirst(ClaimTypes.Email)?.Value;
-
-            if (user.Identity?.IsAuthenticated != true || string.IsNullOrWhiteSpace(email))
+            // var user = authenticationState.User;
+            var authUser = authenticationState.User;
+            var user = await _userManager.GetUserAsync(authenticationState.User);
+            var currentEmployeeId = user?.EmployeeId;
+            if (currentEmployeeId is null)
             {
                 errorMessage = "Du måste vara inloggad för att registrera tid.";
                 return;
             }
 
-            isHr = user.IsInRole("Admin");
-            employees = (await EmployeeService.GetAllAsync()).OrderBy(item => item.FullName).ToList();
-            var matchingEmployees = employees.Where(item =>
-                string.Equals(item.Email.Trim(), email.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
-
-            if (matchingEmployees.Count == 0 && !isHr)
+            employee = await EmployeeService.GetByIdAsync(currentEmployeeId.Value);
+            if (employee is null)
             {
                 errorMessage = "Det finns ingen anställd med samma e-postadress som ditt konto.";
                 return;
             }
 
-            if (matchingEmployees.Count > 1 && !isHr)
-            {
-                errorMessage = "Flera anställda har samma e-postadress som ditt konto.";
-                return;
-            }
+            isHr = authUser.IsInRole("HR");
+            employees = (await EmployeeService.GetAllAsync()).OrderBy(item => item.FullName).ToList();
 
-            if (matchingEmployees.Count == 1)
-            {
-                employee = matchingEmployees[0];
-                selectedEmployeeId = employee.Id;
-                projects = (await ProjectService.GetAllAsync()).ToList();
-                timeReports = (await TimeReportService.GetAllAsync())
-                    .Where(report => report.EmployeeId == employee.Id).ToList();
-            }
+            selectedEmployeeId = employee.Id;
+            projects = (await ProjectService.GetAllAsync()).ToList();
+            timeReports = (await TimeReportService.GetAllAsync())
+                .Where(report => report.EmployeeId == employee.Id).ToList();
         }
         catch (Exception)
         {

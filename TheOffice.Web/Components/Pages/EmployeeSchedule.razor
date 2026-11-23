@@ -1,6 +1,9 @@
 ﻿@page "/employee-schedule"
+@attribute [Authorize(Roles = "Admin,Employee")]
 @using System.Globalization
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity
 @using TheOffice.Application.Interfaces.Repositories
 @using TheOffice.Domain.Entities
 @using TheOffice.Web.Data
@@ -8,9 +11,10 @@
 @rendermode InteractiveServer
 @inject IEmployeeAbsenceRepository AbsenceRepo
 @inject IEmployeeRepository EmployeeRepo
+@inject UserManager<ApplicationUser> _userManager
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>Schedule for @userName</h3>
+    <h3>Schedule for @employeeName</h3>
 
     <div class="d-flex align-items-center gap-2">
         <button class="btn btn-outline-primary btn-sm" @onclick="PreviousWeek">&laquo; Previous</button>
@@ -68,7 +72,7 @@
 </div>
 
 @code {
-    private string userName = "Guest";
+    private string employeeName = "Guest";
     private DateTime currentDate = DateTime.Today;
     private List<EmployeeAbsence> absences = new();
     private List<DateTime> weekDays = new();
@@ -79,19 +83,24 @@
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
+        var authUser = authState.User;
+        var user = await _userManager.GetUserAsync(authState.User);
+        var currentEmployeeId = user?.EmployeeId;
 
-        if (user.Identity != null && user.Identity.IsAuthenticated)
+        if (currentEmployeeId == null)
         {
-            userName = user.Identity.Name ?? "User";
-            var employee = (await EmployeeRepo.GetAllAsync()).FirstOrDefault(e => e.Email == userName);
+            return;
+        }
 
-            if (employee != null)
-            {
-                absences = (await AbsenceRepo.GetAllAsync())
-                    .Where(a => a.EmployeeId == employee.Id)
-                    .ToList();
-            }
+        var employee = await EmployeeRepo.GetByIdAsync(currentEmployeeId.Value);
+
+        if (employee is not null)
+        {
+            employeeName = employee.FullName;
+
+            absences = (await AbsenceRepo.GetAllAsync())
+                .Where(a => a.EmployeeId == employee.Id)
+                .ToList();
         }
 
         LoadWeek();
