@@ -19,14 +19,14 @@
 
         <div class="mb-3">
             <label class="form-label fw-bold">Project Name</label>
-            <InputText @bind-Value="newProject.Name" class="form-control" placeholder="t.ex. Webbplats Måsvingen" />
+            <InputText @bind-Value="newProject.Name" class="form-control" placeholder="Example. Webbplats Måsvingen" />
             <ValidationMessage For="@(() => newProject.Name)" class="text-danger" />
         </div>
 
         <div class="mb-3">
             <label class="form-label fw-bold">Customer</label>
             <InputSelect @bind-Value="newProject.CustomerId" class="form-select">
-                <option value="0">-- Välj kund --</option>
+                <option value="0">-- Choose Customer --</option>
                 @foreach (var customer in customers)
                 {
                     <option value="@customer.Id">@customer.Name</option>
@@ -55,7 +55,7 @@
         }
         catch (Exception ex)
         {
-            errorMessage = $"Kunde inte hämta kunder: {ex.Message}";
+            errorMessage = $"Could not retrieve customers: {ex.Message}";
         }
     }
 
@@ -67,7 +67,7 @@
 
             if (newProject.CustomerId == 0)
             {
-                errorMessage = "Du måste välja en kund för projektet.";
+                errorMessage = "You must select a client for the project..";
                 return;
             }
 
@@ -76,7 +76,7 @@
         }
         catch (Exception ex)
         {
-            errorMessage = $"Fel vid sparning: {ex.Message}";
+            errorMessage = $"Error while saving: {ex.Message}";
         }
     }
 
