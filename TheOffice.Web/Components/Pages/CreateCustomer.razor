@@ -1,5 +1,7 @@
 ﻿@page "/customers/create"
+@attribute [Authorize(Roles = "Admin,Employee")]
 @using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Authorization
 @using TheOffice.Application.Interfaces.Services
 @using TheOffice.Domain.Entities
 @inject ICustomerService CustomerService

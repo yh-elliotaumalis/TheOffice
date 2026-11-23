@@ -1,4 +1,7 @@
 ﻿@page "/report-absence"
+@attribute [Authorize(Roles = "Admin,Employee")]
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
 @using TheOffice.Application.Interfaces.Repositories
 @using TheOffice.Domain.Entities
 @using TheOffice.Web.Data
@@ -7,6 +10,7 @@
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthStateProvider
 @inject ApplicationDbContext Context
+@inject UserManager<ApplicationUser> _userManager
 @rendermode InteractiveServer
 
 
@@ -65,9 +69,17 @@
     private async Task SubmitAbsence()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        var userName = authState.User.Identity?.Name;
+        var authUser = authState.User;
+        var user = await _userManager.GetUserAsync(authState.User);
+        var currentEmployeeId = user?.EmployeeId;
 
-        var employee = (await EmployeeRepo.GetAllAsync()).FirstOrDefault(e => e.Email == userName);
+        if (currentEmployeeId == null)
+        {
+            errorMessage = "Ingen anställd hittades för den inloggade användaren.";
+            return;
+        }
+
+        var employee = await EmployeeRepo.GetByIdAsync(currentEmployeeId.Value);
 
         if (employee != null)
         {
@@ -79,7 +91,7 @@
         }
         else
         {
-            errorMessage = $"Hittade ingen anställd med e-post: '{userName ?? "Inte inloggad"}'";
+            errorMessage = $"Hittade ingen anställd med ID: '{currentEmployeeId.Value}'";
         }
     }
 }
