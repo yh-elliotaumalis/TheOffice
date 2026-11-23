@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Forum_Project1.Models;
 using Microsoft.AspNetCore.Identity;
 using TheOffice.Domain.Entities;
 
@@ -23,10 +22,13 @@ namespace TheOffice.Web.Data
                     new Employee { Id = 3, FullName = "Sara Nyström", SocialNumber = "19950622-1122", Title = "UX/UI Designer", Email = "sara.nystrom@theoffice.com", Number = "+46 76-555 44 33", Address = "8 Linné Street, Gothenburg", EmploymentDate = new DateTime(2023, 1, 10), Salary = 42000m, BankAccount = "6123-456 789 012" },
                     new Employee { Id = 4, FullName = "Johan Ek", SocialNumber = "19790218-9988", Title = "Finance Manager", Email = "johan.ek@theoffice.com", Number = "+46 70-222 33 44", Address = "21 The Avenue, Gothenburg", EmploymentDate = new DateTime(2018, 5, 20), Salary = 51500m, BankAccount = "9020-11 223 34" },
                     new Employee { Id = 5, FullName = "Maja Holm", SocialNumber = "19990930-5544", Title = "HR Specialist", Email = "maja.holm@theoffice.com", Number = "+46 72-888 77 66", Address = "33 Vasa Street, Gothenburg", EmploymentDate = new DateTime(2024, 8, 12), Salary = 39000m, BankAccount = "3300-9909305544" }
-                }
+                };
+
+                await context.Employees.AddRangeAsync(employees);
+                await context.SaveChangesAsync();
             }
 
-            if (!await context.Employees.AnyAsync())
+            if (!await context.Customers.AnyAsync())
             {
                 var customers = new List<Customer>
                 {
@@ -35,10 +37,13 @@ namespace TheOffice.Web.Data
                     new Customer { Id = 3, Name = "Sunflower Café Ltd", Email = "hello@sunflowercafe.com", PhoneNumber = "+46 70-444 55 66", Address = "18 Haga New Street, Gothenburg", Notes = "Needs a new website and table booking system by spring." },
                     new Customer { Id = 4, Name = "Gothenburg Logistics Partner", Email = "finance@gbglogistics.com", PhoneNumber = "+46 31-55 66 77", Address = "22 Arendal Road, Gothenburg", Notes = "Point of contact is Anders; prefers email communication." },
                     new Customer { Id = 5, Name = "Studio Green Design", Email = "hello@studiogreen.com", PhoneNumber = "+46 73-111 22 33", Address = "10 Magazine Street, Gothenburg", Notes = "Partner agency for branding and graphic design." }
-                }
+                };
+
+                await context.Customers.AddRangeAsync(customers);
+                await context.SaveChangesAsync();
             }
 
-            if (!await context.Employees.AnyAsync())
+            if (!await context.Projects.AnyAsync())
             {
                 var projects = new List<Project>
                 {
@@ -47,10 +52,13 @@ namespace TheOffice.Web.Data
                     new Project { Id = 3, Name = "Website & Table Booking System", IsCompleted = false, CustomerId = 3 },
                     new Project { Id = 4, Name = "Automated Inventory Sync", IsCompleted = false, CustomerId = 4 },
                     new Project { Id = 5, Name = "Brand Identity & Design System", IsCompleted = true, CustomerId = 5 }
-                }
+                };
+
+                await context.Projects.AddRangeAsync(projects);
+                await context.SaveChangesAsync();
             }
 
-            if (!await context.Employees.AnyAsync())
+            if (!await context.WorkSchedules.AnyAsync())
             {
                 var workschedules = new List<WorkSchedule>
                 {
@@ -59,10 +67,13 @@ namespace TheOffice.Web.Data
                     new WorkSchedule { Id = 3, StartDate = new DateTime(2026, 11, 24, 8, 30, 0), EndDate = new DateTime(2026, 11, 24, 17, 30, 0), EmployeeId = 3 },
                     new WorkSchedule { Id = 4, StartDate = new DateTime(2026, 11, 24, 7, 30, 0), EndDate = new DateTime(2026, 11, 24, 16, 30, 0), EmployeeId = 4 },
                     new WorkSchedule { Id = 5, StartDate = new DateTime(2026, 11, 25, 8, 0, 0), EndDate = new DateTime(2026, 11, 25, 16, 0, 0), EmployeeId = 5 }
-                }
+                };
+
+                await context.WorkSchedules.AddRangeAsync(workschedules);
+                await context.SaveChangesAsync();
             }
 
-            if (!await context.Employees.AnyAsync())
+            if (!await context.Invoices.AnyAsync())
             {
                 var invoices = new List<Invoice>
                 {
@@ -71,10 +82,13 @@ namespace TheOffice.Web.Data
                     new Invoice { Id = 3, InvoiceNumber = "INV-2026-003", DeadLine = new DateOnly(2026, 12, 10), DateSent = new DateOnly(2026, 11, 10), TotalAmount = 22500m, IsPaid = false, HourlyRate = 750m, ProjectId = 3, CustomerId = 3 },
                     new Invoice { Id = 4, InvoiceNumber = "INV-2026-004", DeadLine = new DateOnly(2026, 12, 23), DateSent = new DateOnly(2026, 11, 23), TotalAmount = 66500m, IsPaid = false, HourlyRate = 950m, ProjectId = 4, CustomerId = 4 },
                     new Invoice { Id = 5, InvoiceNumber = "INV-2026-005", DeadLine = new DateOnly(2026, 10, 30), DateSent = new DateOnly(2026, 9, 30), TotalAmount = 32000m, IsPaid = true, HourlyRate = 800m, ProjectId = 5, CustomerId = 5 }
-                }
+                };
+
+                await context.Invoices.AddRangeAsync(invoices);
+                await context.SaveChangesAsync();
             }
 
-            if (!await context.Employees.AnyAsync())
+            if (!await context.TimeReports.AnyAsync())
             {
                 var timeReports = new List<TimeReport>
                 {
@@ -83,10 +97,13 @@ namespace TheOffice.Web.Data
                     new TimeReport { Id = 3, Description = "Designed wireframes for table reservation flow", Hours = 7.5m, Date = new DateOnly(2026, 11, 24), ProjectId = 3, EmployeeId = 3 },
                     new TimeReport { Id = 4, Description = "Reviewed warehouse API billing and cost estimates", Hours = 4.0m, Date = new DateOnly(2026, 11, 24), ProjectId = 4, EmployeeId = 4 },
                     new TimeReport { Id = 5, Description = "Prepared onboarding guidelines for design team", Hours = 5.0m, Date = new DateOnly(2026, 11, 25), ProjectId = 5, EmployeeId = 5 }
-                }
+                };
+
+                await context.TimeReports.AddRangeAsync(timeReports);
+                await context.SaveChangesAsync();
             }
 
-            if (!await context.Employees.AnyAsync())
+            if (!await context.ConferenceRooms.AnyAsync())
             {
                 var conferenceRooms = new List<ConferenceRoom>
                 {
@@ -95,10 +112,13 @@ namespace TheOffice.Web.Data
                     new ConferenceRoom { Id = 3, Name = "Harbor View" },
                     new ConferenceRoom { Id = 4, Name = "Focus Pod A" },
                     new ConferenceRoom { Id = 5, Name = "Skyline Lounge" }
-                }
+                };
+
+                await context.ConferenceRooms.AddRangeAsync(conferenceRooms);
+                await context.SaveChangesAsync();
             }
 
-            if (!await context.Employees.AnyAsync())
+            if (!await context.EmployeeAbsences.AnyAsync())
             {
                 var employeeAbsences = new List<EmployeeAbsence>
                 {
@@ -107,10 +127,13 @@ namespace TheOffice.Web.Data
                     new EmployeeAbsence { Id = 3, Type = "Parental Leave", StartDate = new DateTime(2026, 11, 16, 8, 0, 0), EndDate = new DateTime(2026, 11, 20, 17, 0, 0), Description = "Care of sick child (VAB)", EmployeeId = 3 },
                     new EmployeeAbsence { Id = 4, Type = "Medical Appointment", StartDate = new DateTime(2026, 11, 26, 13, 0, 0), EndDate = new DateTime(2026, 11, 26, 15, 0, 0), Description = "Routine dental checkup", EmployeeId = 4 },
                     new EmployeeAbsence { Id = 5, Type = "Personal Leave", StartDate = new DateTime(2026, 12, 4, 8, 0, 0), EndDate = new DateTime(2026, 12, 4, 17, 0, 0), Description = "Moving to a new apartment", EmployeeId = 5 }
-                }
+                };
+
+                await context.EmployeeAbsences.AddRangeAsync(employeeAbsences);
+                await context.SaveChangesAsync();
             }
 
-            if (!await context.Employees.AnyAsync())
+            if (!await context.Bookings.AnyAsync())
             {
                 var bookings = new List<Booking>
                 {
@@ -119,7 +142,10 @@ namespace TheOffice.Web.Data
                     new Booking { Id = 3, Description = "UI/UX wireframe presentation for booking flow", StartTime = new DateTime(2026, 11, 24, 9, 30, 0), EndTime = new DateTime(2026, 11, 24, 11, 0, 0), EmployeeId = 3, CustomerId = 3, ConferenceRoomId = 3 },
                     new Booking { Id = 4, Description = "Q4 budget and inventory sync contract review", StartTime = new DateTime(2026, 11, 24, 14, 0, 0), EndTime = new DateTime(2026, 11, 24, 15, 0, 0), EmployeeId = 4, CustomerId = 4, ConferenceRoomId = 4 },
                     new Booking { Id = 5, Description = "Brand identity workshop and creative alignment", StartTime = new DateTime(2026, 11, 25, 10, 0, 0), EndTime = new DateTime(2026, 11, 25, 12, 0, 0), EmployeeId = 5, CustomerId = 5, ConferenceRoomId = 5 }
-                }
+                };
+
+                await context.Bookings.AddRangeAsync(bookings);
+                await context.SaveChangesAsync();
             }
         }
     }
