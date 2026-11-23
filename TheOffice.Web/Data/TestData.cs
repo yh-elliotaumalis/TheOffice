@@ -122,11 +122,11 @@ namespace TheOffice.Web.Data
             {
                 var employeeAbsences = new List<EmployeeAbsence>
                 {
-                    new EmployeeAbsence { Id = 1, Type = "Sick Leave", StartDate = new DateTime(2026, 11, 2, 8, 0, 0), EndDate = new DateTime(2026, 11, 4, 17, 0, 0), Description = "Seasonal flu recovery", EmployeeId = 1 },
-                    new EmployeeAbsence { Id = 2, Type = "Vacation", StartDate = new DateTime(2026, 12, 21, 8, 0, 0), EndDate = new DateTime(2026, 12, 31, 17, 0, 0), Description = "Christmas and New Year holiday", EmployeeId = 2 },
-                    new EmployeeAbsence { Id = 3, Type = "Parental Leave", StartDate = new DateTime(2026, 11, 16, 8, 0, 0), EndDate = new DateTime(2026, 11, 20, 17, 0, 0), Description = "Care of sick child (VAB)", EmployeeId = 3 },
-                    new EmployeeAbsence { Id = 4, Type = "Medical Appointment", StartDate = new DateTime(2026, 11, 26, 13, 0, 0), EndDate = new DateTime(2026, 11, 26, 15, 0, 0), Description = "Routine dental checkup", EmployeeId = 4 },
-                    new EmployeeAbsence { Id = 5, Type = "Personal Leave", StartDate = new DateTime(2026, 12, 4, 8, 0, 0), EndDate = new DateTime(2026, 12, 4, 17, 0, 0), Description = "Moving to a new apartment", EmployeeId = 5 }
+                        new EmployeeAbsence { Id = 1, Type = "Sick Leave", StartDate = new DateTime(2026, 11, 2, 8, 0, 0), EndDate = new DateTime(2026, 11, 4, 17, 0, 0), Description = "Seasonal flu recovery", EmployeeId = 1 },
+                        new EmployeeAbsence { Id = 2, Type = "Vacation", StartDate = new DateTime(2026, 12, 21, 8, 0, 0), EndDate = new DateTime(2026, 12, 31, 17, 0, 0), Description = "Christmas and New Year holiday", EmployeeId = 2 },
+                        new EmployeeAbsence { Id = 3, Type = "Parental Leave", StartDate = new DateTime(2026, 11, 16, 8, 0, 0), EndDate = new DateTime(2026, 11, 20, 17, 0, 0), Description = "Scheduled parental leave with newborn", EmployeeId = 3 },
+                        new EmployeeAbsence { Id = 4, Type = "Care Of Sick Child", StartDate = new DateTime(2026, 11, 26, 13, 0, 0), EndDate = new DateTime(2026, 11, 26, 15, 0, 0), Description = "Pediatrician visit with sick child", EmployeeId = 4 },
+                        new EmployeeAbsence { Id = 5, Type = "Vacation", StartDate = new DateTime(2026, 12, 4, 8, 0, 0), EndDate = new DateTime(2026, 12, 4, 17, 0, 0), Description = "Day off for moving to a new apartment", EmployeeId = 5 }
                 };
 
                 await context.EmployeeAbsences.AddRangeAsync(employeeAbsences);

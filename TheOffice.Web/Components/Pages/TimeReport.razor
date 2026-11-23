@@ -219,7 +219,7 @@ else if (employee != null)
                 return;
             }
 
-            isHr = user.IsInRole("HR");
+            isHr = user.IsInRole("Admin");
             employees = (await EmployeeService.GetAllAsync()).OrderBy(item => item.FullName).ToList();
             var matchingEmployees = employees.Where(item =>
                 string.Equals(item.Email.Trim(), email.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();

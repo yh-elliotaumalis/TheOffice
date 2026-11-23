@@ -66,6 +66,12 @@ builder.Services.AddScoped<IWorkScheduleRepository, WorkScheduleRepository>();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    await TestData.SeedAsync(services);
+}
+
 await Roles.SeedAsync(app.Services);
 
 // Configure the HTTP request pipeline.
