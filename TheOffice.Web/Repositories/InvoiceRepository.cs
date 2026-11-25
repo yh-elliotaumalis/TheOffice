@@ -12,6 +12,7 @@ namespace TheOffice.Web.Repositories
         {
             return await context.Invoices
                 .Include(invoice => invoice.Customer)
+                .Include(invoice => invoice.Project)
                 .ToListAsync();
         }
 
@@ -20,6 +21,7 @@ namespace TheOffice.Web.Repositories
         {
             return await context.Invoices
                 .Include(invoice => invoice.Customer)
+                .Include(invoice => invoice.Project)
                 .Where(invoice => invoice.CustomerId == customerId)
                 .ToListAsync();
         }
@@ -28,6 +30,7 @@ namespace TheOffice.Web.Repositories
         {
             return await context.Invoices
                 .Include(invoice => invoice.Customer)
+                .Include(invoice => invoice.Project)
                 .FirstOrDefaultAsync(invoice => invoice.Id == id);
         }
 
