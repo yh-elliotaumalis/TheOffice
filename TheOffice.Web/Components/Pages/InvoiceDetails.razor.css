@@ -1,0 +1,80 @@
+.invoice {
+    max-width: 850px;
+    margin: 0 auto;
+    padding: 2rem;
+    border: 1px solid #d8dee8;
+    border-radius: 8px;
+    background-color: white;
+    overflow-wrap: anywhere;
+}
+
+.invoice-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #1b6ec2;
+}
+
+.invoice-logo {
+    width: 240px;
+    max-width: 100%;
+    height: auto;
+}
+
+.invoice h1,
+.invoice h2 {
+    color: #1b6ec2;
+}
+
+.invoice h2 {
+    font-size: 1.2rem;
+}
+
+.invoice p {
+    margin-bottom: 0.5rem;
+}
+
+.invoice-parties {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: 1.5rem;
+}
+
+.invoice-dates,
+.invoice-payment {
+    margin-top: 1.5rem;
+}
+
+.invoice-total {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: #edf5ff;
+    border-left: 4px solid #1b6ec2;
+}
+
+.invoice-total p {
+    margin-bottom: 0;
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+
+.invoice-footer {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #d8dee8;
+}
+
+@media (max-width: 600px) {
+    .invoice {
+        padding: 1rem;
+    }
+
+    .invoice-parties {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}

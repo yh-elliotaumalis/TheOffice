@@ -1,7 +1,59 @@
 ﻿@page "/billing-page"
 
-<h3>Billing</h3>
+@using Microsoft.AspNetCore.Authorization
+@using TheOffice.Application.Interfaces.Services
+@using TheOffice.Domain.Entities
+@inject IInvoiceService InvoiceService
+@attribute [Authorize(Roles = "Admin,Customer")]
+
+<PageTitle>Fakturor</PageTitle>
+
+<h1>Fakturor</h1>
+
+@if (isLoading)
+{
+    <p>Laddar fakturor...</p>
+}
+else if (errorMessage != "")
+{
+    <p class="text-danger">@errorMessage</p>
+}
+else if (invoices.Count == 0)
+{
+    <p>Det finns inga fakturor.</p>
+}
+else
+{
+    <ul>
+        @foreach (var invoice in invoices)
+        {
+            <li class="mb-2">
+                <a href="@($"invoice/{invoice.Id}")">
+                    Visa faktura @invoice.InvoiceNumber
+                </a>
+            </li>
+        }
+    </ul>
+}
 
 @code {
+    private List<Invoice> invoices = new List<Invoice>();
+    private bool isLoading = true;
+    private string errorMessage = "";
 
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            invoices = (await InvoiceService.GetAllAsync()).ToList();
+        }
+        catch (Exception)
+        {
+            errorMessage = "Det gick inte att hämta fakturorna.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
 }

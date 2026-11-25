@@ -1,34 +1,125 @@
-﻿using TheOffice.Application.Interfaces.Repositories;
+﻿using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Identity;
+using TheOffice.Application.Interfaces.Repositories;
 using TheOffice.Application.Interfaces.Services;
 using TheOffice.Domain.Entities;
+using TheOffice.Web.Data;
 
 namespace TheOffice.Web.Services
 {
-    public class InvoiceService(IInvoiceRepository invoiceRepository) : IInvoiceService
+    public class InvoiceService(
+        IInvoiceRepository invoiceRepository,
+        UserManager<ApplicationUser> userManager,
+        AuthenticationStateProvider authenticationStateProvider)
+        : IInvoiceService
     {
-        public Task<Invoice> AddAsync(Invoice invoice)
+        public async Task<IEnumerable<Invoice>> GetAllAsync()
         {
-            return invoiceRepository.AddAsync(invoice);
+            var authenticationState =
+                await authenticationStateProvider.GetAuthenticationStateAsync();
+
+            var user = authenticationState.User;
+
+            if (user.Identity?.IsAuthenticated == true &&
+                user.IsInRole("Admin"))
+            {
+                return await invoiceRepository.GetAllAsync();
+            }
+
+            var customerId = await GetCustomerIdAsync();
+
+            if (customerId == null)
+            {
+                return new List<Invoice>();
+            }
+
+            return await invoiceRepository.GetByCustomerIdAsync(
+                customerId.Value);
         }
 
-        public Task DeleteAsync(int id)
+        public async Task<Invoice?> GetByIdAsync(int id)
         {
-            return invoiceRepository.DeleteAsync(id);
+            var authenticationState =
+                await authenticationStateProvider.GetAuthenticationStateAsync();
+
+            var user = authenticationState.User;
+
+            if (user.Identity?.IsAuthenticated == true &&
+                user.IsInRole("Admin"))
+            {
+                return await invoiceRepository.GetByIdAsync(id);
+            }
+
+            var customerId = await GetCustomerIdAsync();
+
+            if (customerId == null)
+            {
+                return null;
+            }
+
+            var invoice = await invoiceRepository.GetByIdAsync(id);
+
+            if (invoice?.CustomerId != customerId.Value)
+            {
+                return null;
+            }
+
+            return invoice;
         }
 
-        public Task<IEnumerable<Invoice>> GetAllAsync()
+        public async Task<Invoice> AddAsync(Invoice invoice)
         {
-            return invoiceRepository.GetAllAsync();
+            await CheckAdminAsync();
+
+            return await invoiceRepository.AddAsync(invoice);
         }
 
-        public Task<Invoice?> GetByIdAsync(int id)
+        public async Task UpdateAsync(Invoice invoice)
         {
-            return invoiceRepository.GetByIdAsync(id);
+            await CheckAdminAsync();
+
+            await invoiceRepository.UpdateAsync(invoice);
         }
 
-        public Task UpdateAsync(Invoice invoice)
+        public async Task DeleteAsync(int id)
         {
-            return invoiceRepository.UpdateAsync(invoice);
+            await CheckAdminAsync();
+
+            await invoiceRepository.DeleteAsync(id);
+        }
+
+        private async Task CheckAdminAsync()
+        {
+            var authenticationState =
+                await authenticationStateProvider.GetAuthenticationStateAsync();
+
+            var user = authenticationState.User;
+
+            if (user.Identity?.IsAuthenticated != true ||
+                !user.IsInRole("Admin"))
+            {
+                throw new UnauthorizedAccessException(
+                    "Du måste vara administratör.");
+            }
+        }
+
+        private async Task<int?> GetCustomerIdAsync()
+        {
+            var authenticationState =
+                await authenticationStateProvider.GetAuthenticationStateAsync();
+
+            var user = authenticationState.User;
+
+            if (user.Identity?.IsAuthenticated != true ||
+                !user.IsInRole("Customer"))
+            {
+                throw new UnauthorizedAccessException(
+                    "Du har inte tillgång till fakturorna.");
+            }
+
+            var account = await userManager.GetUserAsync(user);
+
+            return account?.CustomerId;
         }
     }
 }
