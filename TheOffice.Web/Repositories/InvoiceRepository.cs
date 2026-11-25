@@ -39,6 +39,12 @@ namespace TheOffice.Web.Repositories
 
             return entityEntry.Entity;
         }
+        public async Task<decimal> GetReportedHoursAsync(int projectId)
+        {
+            return await context.TimeReports
+                .Where(report => report.ProjectId == projectId)
+                .SumAsync(report => report.Hours);
+        }
 
         public async Task UpdateAsync(Invoice invoice)
         {
