@@ -1,0 +1,273 @@
+﻿@page "/create-invoice"
+ 
+@using System.Globalization
+@using Microsoft.AspNetCore.Authorization
+@using TheOffice.Application.Interfaces.Services
+@using TheOffice.Domain.Entities
+@inject ICustomerService CustomerService
+@inject IProjectService ProjectService
+@inject IInvoiceService InvoiceService
+@inject NavigationManager NavigationManager
+@attribute [Authorize(Roles = "Admin")]
+ 
+<PageTitle>Skapa faktura</PageTitle>
+ 
+<h1>Skapa faktura</h1>
+ 
+@if (isLoading)
+{
+    <p>Laddar kunder och projekt...</p>
+}
+else if (loadMessage != "")
+{
+    <p class="text-danger">@loadMessage</p>
+}
+else if (customers.Count == 0)
+{
+    <p>Det finns inga kunder att skapa en faktura för.</p>
+}
+else
+{
+    <EditForm Model="newInvoice"
+              OnValidSubmit="SaveInvoice"
+              FormName="create-invoice">
+        <DataAnnotationsValidator />
+        <ValidationSummary class="text-danger" />
+ 
+        @if (errorMessage != "")
+        {
+            <p class="text-danger">@errorMessage</p>
+        }
+ 
+        <div class="mb-3">
+            <label for="invoice-customer" class="form-label">
+                Kund
+            </label>
+            <InputSelect id="invoice-customer"
+                         class="form-select"
+                         @bind-Value="newInvoice.CustomerId"
+                         @bind-Value:after="CustomerChanged"
+                         disabled="@(isSaving || isLoadingHours)">
+                <option value="0">Välj en kund</option>
+ 
+                @foreach (var customer in customers)
+                {
+                    <option value="@customer.Id">
+                        @customer.Name
+                    </option>
+                }
+            </InputSelect>
+        </div>
+ 
+        <div class="mb-3">
+            <label for="invoice-project" class="form-label">
+                Projekt
+            </label>
+            <InputSelect id="invoice-project"
+                         class="form-select"
+                         @bind-Value="newInvoice.ProjectId"
+                         @bind-Value:after="ProjectChanged"
+                         disabled="@(newInvoice.CustomerId == 0 || isSaving || isLoadingHours)">
+                <option value="0">Välj ett projekt</option>
+ 
+                @foreach (var project in projects.Where(project =>
+                    project.CustomerId == newInvoice.CustomerId))
+                {
+                    <option value="@project.Id">
+                        @project.Name
+                    </option>
+                }
+            </InputSelect>
+ 
+            @if (newInvoice.CustomerId > 0 &&
+                !projects.Any(project =>
+                    project.CustomerId == newInvoice.CustomerId))
+            {
+                <p>Kunden har inga projekt.</p>
+            }
+        </div>
+ 
+        @if (isLoadingHours)
+        {
+            <p>Laddar arbetstid...</p>
+        }
+        else
+        {
+            <p>
+                <strong>Registrerad arbetstid:</strong>
+                @reportedHours.ToString("0.##", swedishCulture) timmar
+            </p>
+ 
+            @if (newInvoice.ProjectId > 0 && reportedHours == 0)
+            {
+                <p>Projektet har ingen registrerad arbetstid.</p>
+            }
+        }
+ 
+        <div class="mb-3">
+            <label for="invoice-hourly-rate" class="form-label">
+                Timpris (kr per timme)
+            </label>
+            <InputNumber id="invoice-hourly-rate"
+                         class="form-control"
+                         @bind-Value="newInvoice.HourlyRate"
+                         min="0.01"
+                         step="0.01"
+                         disabled="@isSaving"
+                         ParsingErrorMessage="Ange ett giltigt timpris." />
+        </div>
+ 
+        <div class="mb-3">
+            <label for="invoice-date" class="form-label">
+                Fakturadatum
+            </label>
+            <InputDate id="invoice-date"
+                       class="form-control"
+                       @bind-Value="newInvoice.DateSent"
+                       disabled="@isSaving"
+                       ParsingErrorMessage="Ange ett giltigt fakturadatum." />
+        </div>
+ 
+        <div class="mb-3">
+            <label for="invoice-due-date" class="form-label">
+                Förfallodatum
+            </label>
+            <InputDate id="invoice-due-date"
+                       class="form-control"
+                       @bind-Value="newInvoice.DeadLine"
+                       disabled="@isSaving"
+                       ParsingErrorMessage="Ange ett giltigt förfallodatum." />
+        </div>
+ 
+        <p class="fs-4 fw-bold">
+            Belopp: @Math.Round(
+                            reportedHours * newInvoice.HourlyRate,
+                            2,
+                            MidpointRounding.AwayFromZero).ToString(
+                                "C2", swedishCulture)
+        </p>
+ 
+        <button type="submit"
+                class="btn btn-primary"
+                disabled="@(isSaving || isLoadingHours || newInvoice.ProjectId == 0 || reportedHours <= 0)">
+            @(isSaving ? "Sparar..." : "Skapa faktura")
+        </button>
+    </EditForm>
+}
+ 
+<p class="mt-3">
+    <a href="billing-page">Tillbaka till fakturorna</a>
+</p>
+ 
+@code {
+    private Invoice newInvoice = new Invoice
+    {
+        DateSent = DateOnly.FromDateTime(DateTime.Today),
+        DeadLine = DateOnly.FromDateTime(DateTime.Today.AddDays(30))
+    };
+ 
+    private List<Customer> customers = new List<Customer>();
+    private List<Project> projects = new List<Project>();
+ 
+    private CultureInfo swedishCulture = new CultureInfo("sv-SE");
+ 
+    private decimal reportedHours;
+ 
+    private bool isLoading = true;
+    private bool isLoadingHours;
+    private bool isSaving;
+ 
+    private string loadMessage = "";
+    private string errorMessage = "";
+ 
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            customers = (await CustomerService.GetAllAsync()).ToList();
+ 
+            projects = (await ProjectService.GetAllAsync()).ToList();
+        }
+        catch (Exception)
+        {
+            loadMessage = "Det gick inte att hämta kunder och projekt.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+ 
+    private void CustomerChanged()
+    {
+        newInvoice.ProjectId = 0;
+        reportedHours = 0;
+        errorMessage = "";
+    }
+ 
+    private async Task ProjectChanged()
+    {
+        reportedHours = 0;
+        errorMessage = "";
+ 
+        if (newInvoice.ProjectId == 0)
+        {
+            return;
+        }
+ 
+        isLoadingHours = true;
+ 
+        try
+        {
+            reportedHours = await InvoiceService.GetReportedHoursAsync(
+                newInvoice.ProjectId);
+        }
+        catch (ArgumentException exception)
+        {
+            errorMessage = exception.Message;
+        }
+        catch (Exception)
+        {
+            errorMessage = "Det gick inte att hämta arbetstiden.";
+        }
+        finally
+        {
+            isLoadingHours = false;
+        }
+    }
+ 
+    private async Task SaveInvoice()
+    {
+        if (isSaving || isLoadingHours)
+        {
+            return;
+        }
+ 
+        isSaving = true;
+        errorMessage = "";
+ 
+        try
+        {
+            var savedInvoice = await InvoiceService.AddAsync(newInvoice);
+ 
+            NavigationManager.NavigateTo(
+                $"/invoice/{savedInvoice.Id}");
+        }
+        catch (ArgumentException exception)
+        {
+            errorMessage = exception.Message;
+        }
+        catch (UnauthorizedAccessException exception)
+        {
+            errorMessage = exception.Message;
+        }
+        catch (Exception)
+        {
+            errorMessage = "Det gick inte att skapa fakturan.";
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+}

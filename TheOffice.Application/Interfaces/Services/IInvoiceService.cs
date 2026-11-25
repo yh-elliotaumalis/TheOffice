@@ -8,9 +8,15 @@ namespace TheOffice.Application.Interfaces.Services
     public interface IInvoiceService
     {
         Task<IEnumerable<Invoice>> GetAllAsync();
+
         Task<Invoice?> GetByIdAsync(int id);
+
+        Task<decimal> GetReportedHoursAsync(int projectId);
+
         Task<Invoice> AddAsync(Invoice invoice);
+
         Task UpdateAsync(Invoice invoice);
+
         Task DeleteAsync(int id);
     }
 }
