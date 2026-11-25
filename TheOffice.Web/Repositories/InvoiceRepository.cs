@@ -5,35 +5,69 @@ using TheOffice.Web.Data;
 
 namespace TheOffice.Web.Repositories
 {
-    public class InvoiceRepository(ApplicationDbContext context) : IInvoiceRepository
+    public class InvoiceRepository(ApplicationDbContext context)
+        : IInvoiceRepository
     {
         public async Task<IEnumerable<Invoice>> GetAllAsync()
         {
-            return await context.Invoices.ToListAsync();
+            return await context.Invoices
+                .Include(invoice => invoice.Customer)
+                .Include(invoice => invoice.Project)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Invoice>> GetByCustomerIdAsync(int customerId)
+        {
+            return await context.Invoices
+                .Include(invoice => invoice.Customer)
+                .Include(invoice => invoice.Project)
+                .Where(invoice => invoice.CustomerId == customerId)
+                .ToListAsync();
         }
 
         public async Task<Invoice?> GetByIdAsync(int id)
         {
             return await context.Invoices
-                .FirstOrDefaultAsync(i => i.Id == id);
+                .Include(invoice => invoice.Customer)
+                .Include(invoice => invoice.Project)
+                .FirstOrDefaultAsync(invoice => invoice.Id == id);
         }
+
+        public async Task<decimal> GetReportedHoursAsync(int projectId)
+        {
+            return await context.TimeReports
+                .Where(report => report.ProjectId == projectId)
+                .SumAsync(report => report.Hours);
+        }
+
         public async Task<Invoice> AddAsync(Invoice invoice)
         {
             var entityEntry = await context.Invoices.AddAsync(invoice);
+
             await context.SaveChangesAsync();
+
             return entityEntry.Entity;
         }
+
         public async Task UpdateAsync(Invoice invoice)
         {
             context.Invoices.Update(invoice);
+
             await context.SaveChangesAsync();
         }
+
         public async Task DeleteAsync(int id)
         {
-            var invoice = await context.Invoices.FirstOrDefaultAsync(i => i.Id == id);
-            if (invoice is null) return;
+            var invoice = await context.Invoices
+                .FirstOrDefaultAsync(item => item.Id == id);
+
+            if (invoice == null)
+            {
+                return;
+            }
 
             context.Invoices.Remove(invoice);
+
             await context.SaveChangesAsync();
         }
     }

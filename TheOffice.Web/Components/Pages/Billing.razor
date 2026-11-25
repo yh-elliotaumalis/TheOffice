@@ -1,7 +1,233 @@
 ﻿@page "/billing-page"
-
-<h3>Billing</h3>
-
+ 
+@using System.Globalization
+@using Microsoft.AspNetCore.Authorization
+@using TheOffice.Application.Interfaces.Services
+@using TheOffice.Domain.Entities
+@inject IInvoiceService InvoiceService
+@attribute [Authorize(Roles = "Admin,Customer")]
+ 
+<PageTitle>Fakturor</PageTitle>
+ 
+<h1>Fakturor</h1>
+ 
+@if (isLoading)
+{
+    <p>Laddar fakturor...</p>
+}
+else if (errorMessage != "")
+{
+    <p class="text-danger">@errorMessage</p>
+}
+else
+{
+    <p class="fs-4 fw-bold">
+        Totalt: @totalAmount.ToString("C2", swedishCulture)
+    </p>
+ 
+    <AuthorizeView Roles="Admin">
+        <p>
+            <a class="btn btn-primary" href="create-invoice">
+                Skapa faktura
+            </a>
+        </p>
+    </AuthorizeView>
+ 
+    <form class="row g-3 mb-4"
+          @onsubmit="ApplyFilters"
+          @onsubmit:preventDefault>
+        <div class="col-md-3">
+            <label for="invoice-from-date" class="form-label">
+                Från datum
+            </label>
+            <input id="invoice-from-date"
+                   type="date"
+                   class="form-control"
+                   @bind="fromDate"
+                   required />
+        </div>
+ 
+        <div class="col-md-3">
+            <label for="invoice-to-date" class="form-label">
+                Till datum
+            </label>
+            <input id="invoice-to-date"
+                   type="date"
+                   class="form-control"
+                   @bind="toDate"
+                   required />
+        </div>
+ 
+        <div class="col-md-3">
+            <label for="invoice-status" class="form-label">
+                Betalningsstatus
+            </label>
+            <select id="invoice-status"
+                    class="form-select"
+                    @bind="paymentStatus">
+                <option value="All">Alla</option>
+                <option value="Paid">Betalda</option>
+                <option value="Unpaid">Obetalda</option>
+            </select>
+        </div>
+ 
+        <div class="col-md-3">
+            <label for="invoice-search" class="form-label">
+                Sök faktura, kund eller projekt
+            </label>
+            <input id="invoice-search"
+                   type="search"
+                   class="form-control"
+                   @bind="searchText" />
+        </div>
+ 
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary">
+                Sök
+            </button>
+        </div>
+    </form>
+ 
+    @if (filterMessage != "")
+    {
+        <p class="text-danger">@filterMessage</p>
+    }
+    else if (filteredInvoices.Count == 0)
+    {
+        <p>Det finns inga fakturor för sökningen.</p>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Fakturanummer</th>
+                        <th scope="col">Kund</th>
+                        <th scope="col">Fakturadatum</th>
+                        <th scope="col">Förfallodatum</th>
+                        <th scope="col">Belopp</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Visa</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var invoice in filteredInvoices)
+                    {
+                        <tr>
+                            <td>@invoice.InvoiceNumber</td>
+                            <td>
+                                @(invoice.Customer?.Name ?? "Kund saknas")
+                            </td>
+                            <td>
+                                @invoice.DateSent.ToString("yyyy-MM-dd")
+                            </td>
+                            <td>
+                                @invoice.DeadLine.ToString("yyyy-MM-dd")
+                            </td>
+                            <td>
+                                @invoice.TotalAmount.ToString(
+                                    "C2", swedishCulture)
+                            </td>
+                            <td>
+                                @(invoice.IsPaid ? "Betald" : "Obetald")
+                            </td>
+                            <td>
+                                <a href="@($"invoice/{invoice.Id}")">
+                                    Visa faktura
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+ 
 @code {
-
+    private List<Invoice> invoices = new List<Invoice>();
+    private List<Invoice> filteredInvoices = new List<Invoice>();
+ 
+    private CultureInfo swedishCulture = new CultureInfo("sv-SE");
+ 
+    private DateOnly fromDate =
+        new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1);
+ 
+    private DateOnly toDate = DateOnly.FromDateTime(DateTime.Today);
+ 
+    private string paymentStatus = "All";
+    private string searchText = "";
+    private string filterMessage = "";
+    private string errorMessage = "";
+ 
+    private decimal totalAmount;
+    private bool isLoading = true;
+ 
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            invoices = (await InvoiceService.GetAllAsync()).ToList();
+ 
+            ApplyFilters();
+        }
+        catch (Exception)
+        {
+            errorMessage = "Det gick inte att hämta fakturorna.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+ 
+    private void ApplyFilters()
+    {
+        filterMessage = "";
+        filteredInvoices = new List<Invoice>();
+        totalAmount = 0;
+ 
+        if (fromDate > toDate)
+        {
+            filterMessage = "Från-datum får inte vara efter till-datum.";
+            return;
+        }
+ 
+        var matchingInvoices = invoices.Where(invoice =>
+            invoice.DateSent >= fromDate &&
+            invoice.DateSent <= toDate);
+ 
+        if (paymentStatus == "Paid")
+        {
+            matchingInvoices = matchingInvoices.Where(invoice =>
+                invoice.IsPaid);
+        }
+        else if (paymentStatus == "Unpaid")
+        {
+            matchingInvoices = matchingInvoices.Where(invoice =>
+                !invoice.IsPaid);
+        }
+ 
+        var search = searchText.Trim();
+ 
+        if (search != "")
+        {
+            matchingInvoices = matchingInvoices.Where(invoice =>
+                invoice.InvoiceNumber.Contains(
+                    search, StringComparison.OrdinalIgnoreCase) ||
+                (invoice.Customer?.Name.Contains(
+                    search, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (invoice.Project?.Name.Contains(
+                    search, StringComparison.OrdinalIgnoreCase) ?? false));
+        }
+ 
+        filteredInvoices = matchingInvoices
+            .OrderByDescending(invoice => invoice.DateSent)
+            .ThenByDescending(invoice => invoice.Id)
+            .ToList();
+ 
+        totalAmount = filteredInvoices.Sum(invoice =>
+            invoice.TotalAmount);
+    }
 }
