@@ -12,15 +12,14 @@ namespace TheOffice.Web.Repositories
         {
             return await context.Invoices
                 .Include(invoice => invoice.Customer)
-                .Include(invoice => invoice.Project)
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Invoice>> GetByCustomerIdAsync(int customerId)
+        public async Task<IEnumerable<Invoice>> GetByCustomerIdAsync(
+            int customerId)
         {
             return await context.Invoices
                 .Include(invoice => invoice.Customer)
-                .Include(invoice => invoice.Project)
                 .Where(invoice => invoice.CustomerId == customerId)
                 .ToListAsync();
         }
@@ -29,15 +28,7 @@ namespace TheOffice.Web.Repositories
         {
             return await context.Invoices
                 .Include(invoice => invoice.Customer)
-                .Include(invoice => invoice.Project)
                 .FirstOrDefaultAsync(invoice => invoice.Id == id);
-        }
-
-        public async Task<decimal> GetReportedHoursAsync(int projectId)
-        {
-            return await context.TimeReports
-                .Where(report => report.ProjectId == projectId)
-                .SumAsync(report => report.Hours);
         }
 
         public async Task<Invoice> AddAsync(Invoice invoice)

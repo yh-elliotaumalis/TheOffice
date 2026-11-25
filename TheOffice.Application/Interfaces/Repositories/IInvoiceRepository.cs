@@ -8,9 +8,7 @@ namespace TheOffice.Application.Interfaces.Repositories;
 public interface IInvoiceRepository
 {
     Task<IEnumerable<Invoice>> GetAllAsync();
-
     Task<IEnumerable<Invoice>> GetByCustomerIdAsync(int customerId);
-
     Task<Invoice?> GetByIdAsync(int id);
 
     Task<decimal> GetReportedHoursAsync(int projectId);
