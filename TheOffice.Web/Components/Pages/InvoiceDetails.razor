@@ -4,120 +4,130 @@
 @using Microsoft.AspNetCore.Authorization
 @using TheOffice.Application.Interfaces.Services
 @using TheOffice.Domain.Entities
+ 
 @inject IInvoiceService InvoiceService
 @inject IConfiguration Configuration
-@attribute [Authorize(Roles = "Admin,Customer")]
  
-<PageTitle>Faktura</PageTitle>
+@attribute [Authorize(Roles = "Admin,Employee,Customer")]
  
-@if (isLoading)
-{
-    <p>Laddar faktura...</p>
-}
-else if (errorMessage != "")
-{
-    <p class="text-danger">@errorMessage</p>
-}
-else if (invoice == null)
-{
-    <h1>Fakturan hittades inte.</h1>
-}
-else
-{
-    <article class="invoice">
-        <header class="invoice-header">
-            <img class="invoice-logo"
-                 src="company-logo.png"
-                 alt="@(companyName + " logotyp")" />
+<PageTitle>Invoice</PageTitle>
  
-            <div>
-                <h1>Faktura</h1>
+<main class="invoice-page">
+    @if (isLoading)
+    {
+        <p>Loading invoice...</p>
+    }
+    else if (errorMessage != "")
+    {
+        <p class="text-danger">@errorMessage</p>
+    }
+    else if (invoice == null)
+    {
+        <h1>Invoice not found.</h1>
+    }
+    else
+    {
+        <article class="invoice">
+            <header class="invoice-header">
+                <div class="invoice-brand">
+                    <span class="invoice-brand-mark" aria-hidden="true">
+                        WM
+                    </span>
+ 
+                    <strong>@companyName</strong>
+                </div>
+ 
+                <div>
+                    <h1>Invoice</h1>
+ 
+                    <p>
+                        <strong>Invoice number:</strong>
+                        @invoice.InvoiceNumber
+                    </p>
+                </div>
+            </header>
+ 
+            <div class="invoice-parties">
+                <section>
+                    <h2>Company</h2>
+                    <p>@companyName</p>
+                </section>
+ 
+                <section>
+                    <h2>Customer</h2>
+                    <p>@(invoice.Customer?.Name ?? "Customer not found")</p>
+                    <p>@invoice.Customer?.Address</p>
+                    <p>@invoice.Customer?.Email</p>
+                </section>
+            </div>
+ 
+            <section class="invoice-dates">
+                <h2>Dates</h2>
+ 
                 <p>
-                    <strong>Fakturanummer:</strong>
+                    <strong>Invoice date:</strong>
+                    @invoice.DateSent.ToString("yyyy-MM-dd")
+                </p>
+ 
+                <p>
+                    <strong>Due date:</strong>
+                    @invoice.DeadLine.ToString("yyyy-MM-dd")
+                </p>
+ 
+                <p>
+                    <strong>Status:</strong>
+                    @(invoice.IsPaid ? "Paid" : "Unpaid")
+                </p>
+            </section>
+ 
+            <section class="invoice-total">
+                <h2>Amount due</h2>
+ 
+                <p>
+                    @invoice.TotalAmount.ToString("C2", swedishCulture)
+                </p>
+            </section>
+ 
+            <section class="invoice-payment">
+                <h2>Payment details</h2>
+ 
+                <p>
+                    <strong>
+                        @(isTestBankgiro ? "Bankgiro (test):" : "Bankgiro:")
+                    </strong>
+                    @bankgiro
+                </p>
+ 
+                <p>
+                    <strong>Payment reference:</strong>
                     @invoice.InvoiceNumber
                 </p>
-            </div>
-        </header>
- 
-        <div class="invoice-parties">
-            <section>
-                <h2>Företag</h2>
-                <p>@companyName</p>
             </section>
  
-            <section>
-                <h2>Kund</h2>
-                <p>@(invoice.Customer?.Name ?? "Kund saknas")</p>
-                <p>@invoice.Customer?.Address</p>
-                <p>@invoice.Customer?.Email</p>
-            </section>
-        </div>
- 
-        <section class="invoice-dates">
-            <h2>Datum</h2>
- 
-            <p>
-                <strong>Fakturadatum:</strong>
-                @invoice.DateSent.ToString("yyyy-MM-dd")
-            </p>
- 
-            <p>
-                <strong>Förfallodatum:</strong>
-                @invoice.DeadLine.ToString("yyyy-MM-dd")
-            </p>
- 
-            <p>
-                <strong>Status:</strong>
-                @(invoice.IsPaid ? "Betald" : "Obetald")
-            </p>
-        </section>
- 
-        <section class="invoice-total">
-            <h2>Att betala</h2>
-            <p>@invoice.TotalAmount.ToString("C2", swedishCulture)</p>
-        </section>
- 
-        <section class="invoice-payment">
-            <h2>Betalningsuppgifter</h2>
- 
-            <p>
-                <strong>
-                    @(isTestBankgiro ? "Bankgiro (test):" : "Bankgiro:")
-                </strong>
-                @bankgiro
-            </p>
- 
-            <p>
-                <strong>Betalningsreferens:</strong>
-                @invoice.InvoiceNumber
-            </p>
-        </section>
- 
-        <footer class="invoice-footer">
-            <p>@standardText</p>
-        </footer>
-    </article>
-}
- 
-<p class="mt-3">
-    <a href="billing-page">Tillbaka till fakturorna</a>
-</p>
+            <footer class="invoice-footer">
+                <p>@standardText</p>
+            </footer>
+        </article>
+    }
+</main>
  
 @code {
     [Parameter]
     public int Id { get; set; }
  
     private Invoice? invoice;
+ 
     private CultureInfo swedishCulture = new CultureInfo("sv-SE");
+ 
     private bool isLoading = true;
     private string errorMessage = "";
  
-    private string companyName = "TheOffice";
+    private string companyName = "Webbyrån Måsvingen";
     private string bankgiro = "";
     private bool isTestBankgiro;
  
     private string standardText =
-        "Tack för ditt samarbete! Ange fakturanumret vid betalning.";
+        "Thank you for your business! Please use the invoice number as the payment reference.";
  
     protected override async Task OnParametersSetAsync()
     {
@@ -125,7 +135,6 @@ else
         errorMessage = "";
         invoice = null;
  
-        companyName = Configuration["Invoice:CompanyName"] ?? "TheOffice";
         bankgiro = Configuration["Invoice:Bankgiro"] ?? "";
  
         isTestBankgiro = string.IsNullOrWhiteSpace(bankgiro);
@@ -141,7 +150,7 @@ else
         }
         catch (Exception)
         {
-            errorMessage = "Det gick inte att hämta fakturan.";
+            errorMessage = "Could not load the invoice.";
         }
         finally
         {

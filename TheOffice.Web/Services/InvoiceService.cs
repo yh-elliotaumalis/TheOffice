@@ -22,7 +22,7 @@ namespace TheOffice.Web.Services
             var user = authenticationState.User;
 
             if (user.Identity?.IsAuthenticated == true &&
-                user.IsInRole("Admin"))
+                (user.IsInRole("Admin") || user.IsInRole("Employee")))
             {
                 return await invoiceRepository.GetAllAsync();
             }
@@ -46,7 +46,7 @@ namespace TheOffice.Web.Services
             var user = authenticationState.User;
 
             if (user.Identity?.IsAuthenticated == true &&
-                user.IsInRole("Admin"))
+                (user.IsInRole("Admin") || user.IsInRole("Employee")))
             {
                 return await invoiceRepository.GetByIdAsync(id);
             }

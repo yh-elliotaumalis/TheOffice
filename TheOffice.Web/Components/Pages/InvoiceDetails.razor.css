@@ -1,3 +1,9 @@
+.invoice-page {
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    background-color: #f5f7fa;
+}
+
 .invoice {
     max-width: 850px;
     margin: 0 auto;
@@ -18,10 +24,30 @@
     border-bottom: 2px solid #1b6ec2;
 }
 
-.invoice-logo {
-    width: 240px;
+.invoice-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
     max-width: 100%;
-    height: auto;
+    color: #1b6ec2;
+}
+
+    .invoice-brand strong {
+        font-size: 1.3rem;
+    }
+
+.invoice-brand-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background-color: #1b6ec2;
+    color: white;
+    font-size: 1.2rem;
+    font-weight: bold;
 }
 
 .invoice h1,
@@ -56,11 +82,11 @@
     border-left: 4px solid #1b6ec2;
 }
 
-.invoice-total p {
-    margin-bottom: 0;
-    font-size: 1.8rem;
-    font-weight: bold;
-}
+    .invoice-total p {
+        margin-bottom: 0;
+        font-size: 1.8rem;
+        font-weight: bold;
+    }
 
 .invoice-footer {
     margin-top: 1.5rem;
@@ -69,6 +95,10 @@
 }
 
 @media (max-width: 600px) {
+    .invoice-page {
+        padding: 1rem 0.5rem;
+    }
+
     .invoice {
         padding: 1rem;
     }

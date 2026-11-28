@@ -4,16 +4,18 @@
 @using Microsoft.AspNetCore.Authorization
 @using TheOffice.Application.Interfaces.Services
 @using TheOffice.Domain.Entities
+ 
 @inject IInvoiceService InvoiceService
-@attribute [Authorize(Roles = "Admin,Customer")]
  
-<PageTitle>Fakturor</PageTitle>
+@attribute [Authorize(Roles = "Admin,Employee,Customer")]
  
-<h1>Fakturor</h1>
+<PageTitle>Invoices</PageTitle>
+ 
+<h1>Invoices</h1>
  
 @if (isLoading)
 {
-    <p>Laddar fakturor...</p>
+    <p>Loading invoices...</p>
 }
 else if (errorMessage != "")
 {
@@ -22,13 +24,13 @@ else if (errorMessage != "")
 else
 {
     <p class="fs-4 fw-bold">
-        Totalt: @totalAmount.ToString("C2", swedishCulture)
+        Total: @totalAmount.ToString("C2", swedishCulture)
     </p>
  
     <AuthorizeView Roles="Admin">
         <p>
             <a class="btn btn-primary" href="create-invoice">
-                Skapa faktura
+                Create invoice
             </a>
         </p>
     </AuthorizeView>
@@ -38,8 +40,9 @@ else
           @onsubmit:preventDefault>
         <div class="col-md-3">
             <label for="invoice-from-date" class="form-label">
-                Från datum
+                Start date
             </label>
+ 
             <input id="invoice-from-date"
                    type="date"
                    class="form-control"
@@ -49,8 +52,9 @@ else
  
         <div class="col-md-3">
             <label for="invoice-to-date" class="form-label">
-                Till datum
+                End date
             </label>
+ 
             <input id="invoice-to-date"
                    type="date"
                    class="form-control"
@@ -60,21 +64,23 @@ else
  
         <div class="col-md-3">
             <label for="invoice-status" class="form-label">
-                Betalningsstatus
+                Payment status
             </label>
+ 
             <select id="invoice-status"
                     class="form-select"
                     @bind="paymentStatus">
-                <option value="All">Alla</option>
-                <option value="Paid">Betalda</option>
-                <option value="Unpaid">Obetalda</option>
+                <option value="All">All</option>
+                <option value="Paid">Paid</option>
+                <option value="Unpaid">Unpaid</option>
             </select>
         </div>
  
         <div class="col-md-3">
             <label for="invoice-search" class="form-label">
-                Sök faktura, kund eller projekt
+                Search by invoice number, customer or project
             </label>
+ 
             <input id="invoice-search"
                    type="search"
                    class="form-control"
@@ -83,7 +89,7 @@ else
  
         <div class="col-12">
             <button type="submit" class="btn btn-primary">
-                Sök
+                Search
             </button>
         </div>
     </form>
@@ -94,7 +100,7 @@ else
     }
     else if (filteredInvoices.Count == 0)
     {
-        <p>Det finns inga fakturor för sökningen.</p>
+        <p>No invoices match your search.</p>
     }
     else
     {
@@ -102,13 +108,13 @@ else
             <table class="table">
                 <thead>
                     <tr>
-                        <th scope="col">Fakturanummer</th>
-                        <th scope="col">Kund</th>
-                        <th scope="col">Fakturadatum</th>
-                        <th scope="col">Förfallodatum</th>
-                        <th scope="col">Belopp</th>
+                        <th scope="col">Invoice number</th>
+                        <th scope="col">Customer</th>
+                        <th scope="col">Invoice date</th>
+                        <th scope="col">Due date</th>
+                        <th scope="col">Amount</th>
                         <th scope="col">Status</th>
-                        <th scope="col">Visa</th>
+                        <th scope="col">View</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -116,25 +122,31 @@ else
                     {
                         <tr>
                             <td>@invoice.InvoiceNumber</td>
+ 
                             <td>
-                                @(invoice.Customer?.Name ?? "Kund saknas")
+                                @(invoice.Customer?.Name ?? "Customer not found")
                             </td>
+ 
                             <td>
                                 @invoice.DateSent.ToString("yyyy-MM-dd")
                             </td>
+ 
                             <td>
                                 @invoice.DeadLine.ToString("yyyy-MM-dd")
                             </td>
+ 
                             <td>
                                 @invoice.TotalAmount.ToString(
                                     "C2", swedishCulture)
                             </td>
+ 
                             <td>
-                                @(invoice.IsPaid ? "Betald" : "Obetald")
+                                @(invoice.IsPaid ? "Paid" : "Unpaid")
                             </td>
+ 
                             <td>
                                 <a href="@($"invoice/{invoice.Id}")">
-                                    Visa faktura
+                                    View invoice
                                 </a>
                             </td>
                         </tr>
@@ -174,7 +186,7 @@ else
         }
         catch (Exception)
         {
-            errorMessage = "Det gick inte att hämta fakturorna.";
+            errorMessage = "Could not load the invoices.";
         }
         finally
         {
@@ -190,7 +202,9 @@ else
  
         if (fromDate > toDate)
         {
-            filterMessage = "Från-datum får inte vara efter till-datum.";
+            filterMessage =
+                "The start date cannot be after the end date.";
+ 
             return;
         }
  
