@@ -1,23 +1,24 @@
 ﻿@page "/timereport-page"
+
 @attribute [Authorize(Roles = "Admin,Employee")]
+
 @using System.ComponentModel.DataAnnotations
-@using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Identity
 @using TheOffice.Application.Interfaces.Services
 @using TheOffice.Domain.Entities
 @using TheOffice.Web.Data
 @using TimeReportEntry = TheOffice.Domain.Entities.TimeReport
-@attribute [Authorize]
+
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IEmployeeService EmployeeService
 @inject IProjectService ProjectService
 @inject ITimeReportService TimeReportService
 @inject UserManager<ApplicationUser> _userManager
 
-<PageTitle>Tidrapportering</PageTitle>
+<PageTitle>Time reporting</PageTitle>
 
-<h1>Registrera tid på projekt</h1>
+<h1>Record time on a project</h1>
 
 @if (!string.IsNullOrEmpty(errorMessage))
 {
@@ -26,60 +27,97 @@
 
 @if (isLoading)
 {
-    <p>Laddar...</p>
+    <p>Loading...</p>
 }
 else if (employee != null && projects.Count == 0)
 {
-    <p>Det finns inga projekt att registrera tid på.</p>
+    <p>There are no projects available for time reporting.</p>
 }
 else if (employee != null)
 {
     @if (!string.IsNullOrEmpty(successMessage))
     {
-        <p class="text-success" role="status">@successMessage</p>
+        <p class="text-success" role="status">
+            @successMessage
+        </p>
     }
 
-    <EditForm Model="input" OnValidSubmit="SaveTimeReport" FormName="project-time-report">
+    <EditForm Model="input"
+              OnValidSubmit="SaveTimeReport"
+              FormName="project-time-report">
         <DataAnnotationsValidator />
 
         <fieldset disabled="@(isSaving || isSearching)">
             <div class="mb-3">
-                <label for="project" class="form-label">Kundprojekt</label>
-                <InputSelect id="project" class="form-select" @bind-Value="input.ProjectId" @bind-Value:after="ProjectChanged">
-                    <option value="0">Välj ett projekt</option>
+                <label for="project" class="form-label">
+                    Customer project
+                </label>
+
+                <InputSelect id="project"
+                             class="form-select"
+                             @bind-Value="input.ProjectId"
+                             @bind-Value:after="ProjectChanged">
+                    <option value="0">Select a project</option>
+
                     @foreach (var project in projects)
                     {
-                        <option value="@project.Id">@project.Name</option>
+                        <option value="@project.Id">
+                            @project.Name
+                        </option>
                     }
                 </InputSelect>
+
                 <ValidationMessage For="() => input.ProjectId" />
             </div>
 
             <div class="mb-3">
-                <label for="date" class="form-label">Datum</label>
-                <InputDate id="date" class="form-control" @bind-Value="input.Date" />
+                <label for="date" class="form-label">
+                    Date
+                </label>
+
+                <InputDate id="date"
+                           class="form-control"
+                           @bind-Value="input.Date" />
+
                 <ValidationMessage For="() => input.Date" />
             </div>
 
             <div class="mb-3">
-                <label for="hours" class="form-label">Antal arbetade timmar</label>
-                <InputNumber id="hours" class="form-control" @bind-Value="input.Hours" min="0.01" step="0.01" />
+                <label for="hours" class="form-label">
+                    Hours worked
+                </label>
+
+                <InputNumber id="hours"
+                             class="form-control"
+                             @bind-Value="input.Hours"
+                             min="0.01"
+                             step="0.01" />
+
                 <ValidationMessage For="() => input.Hours" />
             </div>
 
             <div class="mb-3">
-                <label for="description" class="form-label">Arbetsbeskrivning</label>
-                <InputTextArea id="description" class="form-control" rows="3" @bind-Value="input.Description" />
+                <label for="description" class="form-label">
+                    Work description
+                </label>
+
+                <InputTextArea id="description"
+                               class="form-control"
+                               rows="3"
+                               @bind-Value="input.Description" />
+
                 <ValidationMessage For="() => input.Description" />
             </div>
 
-            <button type="submit" class="btn btn-primary">Spara</button>
+            <button type="submit" class="btn btn-primary">
+                Save
+            </button>
         </fieldset>
     </EditForm>
 
     @if (input.ProjectId > 0)
     {
-        <h2 class="mt-4">Mina tidrapporter för projektet</h2>
+        <h2 class="mt-4">My time entries for this project</h2>
 
         var projectReports = timeReports
             .Where(report => report.ProjectId == input.ProjectId)
@@ -88,23 +126,25 @@ else if (employee != null)
 
         @if (projectReports.Count == 0)
         {
-            <p>Inga tidrapporter hittades för projektet.</p>
+            <p>No time entries were found for this project.</p>
         }
         else
         {
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Datum</th>
-                        <th>Timmar</th>
-                        <th>Arbetsbeskrivning</th>
+                        <th>Date</th>
+                        <th>Hours</th>
+                        <th>Work description</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var report in projectReports)
                     {
                         <tr>
-                            <td>@report.Date.ToString("yyyy-MM-dd")</td>
+                            <td>
+                                @report.Date.ToString("yyyy-MM-dd")
+                            </td>
                             <td>@report.Hours</td>
                             <td>@report.Description</td>
                         </tr>
@@ -115,68 +155,99 @@ else if (employee != null)
     }
 }
 
-@if (!isLoading && (employee != null || isHr))
+@if (!isLoading && (employee != null || isAdmin))
 {
-    <h2 class="mt-4">Visa arbetstid</h2>
+    <h2 class="mt-4">View working hours</h2>
 
     <fieldset disabled="@(isSearching || isSaving)">
-        @if (isHr)
+        @if (isAdmin)
         {
             <div class="mb-3">
-                <label for="report-employee" class="form-label">Anställd</label>
-                <select id="report-employee" class="form-select" @bind="selectedEmployeeId" @bind:after="ClearPeriodReport">
-                    <option value="0">Välj en anställd</option>
+                <label for="report-employee" class="form-label">
+                    Employee
+                </label>
+
+                <select id="report-employee"
+                        class="form-select"
+                        @bind="selectedEmployeeId"
+                        @bind:after="ClearPeriodReport">
+                    <option value="0">Select an employee</option>
+
                     @foreach (var person in employees)
                     {
-                        <option value="@person.Id">@person.FullName</option>
+                        <option value="@person.Id">
+                            @person.FullName
+                        </option>
                     }
                 </select>
             </div>
         }
         else
         {
-            <p>Anställd: @employee?.FullName</p>
+            <p>Employee: @employee?.FullName</p>
         }
 
         <div class="mb-3">
-            <label for="report-from" class="form-label">Från datum</label>
-            <input id="report-from" type="date" class="form-control" @bind="fromDate" @bind:after="ClearPeriodReport" />
+            <label for="report-from" class="form-label">
+                Start date
+            </label>
+
+            <input id="report-from"
+                   type="date"
+                   class="form-control"
+                   @bind="fromDate"
+                   @bind:after="ClearPeriodReport" />
         </div>
 
         <div class="mb-3">
-            <label for="report-to" class="form-label">Till datum</label>
-            <input id="report-to" type="date" class="form-control" @bind="toDate" @bind:after="ClearPeriodReport" />
+            <label for="report-to" class="form-label">
+                End date
+            </label>
+
+            <input id="report-to"
+                   type="date"
+                   class="form-control"
+                   @bind="toDate"
+                   @bind:after="ClearPeriodReport" />
         </div>
 
-        <button type="button" class="btn btn-primary" @onclick="ShowPeriodReport">Visa arbetstid</button>
+        <button type="button"
+                class="btn btn-primary"
+                @onclick="ShowPeriodReport">
+            View working hours
+        </button>
     </fieldset>
 
     @if (!string.IsNullOrEmpty(reportErrorMessage))
     {
-        <p class="text-danger" role="alert">@reportErrorMessage</p>
+        <p class="text-danger" role="alert">
+            @reportErrorMessage
+        </p>
     }
 
     @if (hasSearched)
     {
         @if (periodReports.Count == 0)
         {
-            <p>Ingen arbetstid finns för perioden.</p>
+            <p>No working hours were found for this period.</p>
         }
         else
         {
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Datum</th>
-                        <th>Projekt</th>
-                        <th>Timmar</th>
+                        <th>Date</th>
+                        <th>Project</th>
+                        <th>Hours</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var report in periodReports)
                     {
                         <tr>
-                            <td>@report.Date.ToString("yyyy-MM-dd")</td>
+                            <td>
+                                @report.Date.ToString("yyyy-MM-dd")
+                            </td>
                             <td>@report.Project.Name</td>
                             <td>@report.Hours</td>
                         </tr>
@@ -185,25 +256,41 @@ else if (employee != null)
             </table>
         }
 
-        <p><strong>Totalt: @periodReports.Sum(report => report.Hours) timmar</strong></p>
+        <p>
+            <strong>
+                Total: @periodReports.Sum(report => report.Hours) hours
+            </strong>
+        </p>
     }
 }
 
 @code {
     private Employee? employee;
+
     private List<Employee> employees = new List<Employee>();
     private List<Project> projects = new List<Project>();
-    private List<TimeReportEntry> timeReports = new List<TimeReportEntry>();
-    private List<TimeReportEntry> periodReports = new List<TimeReportEntry>();
+
+    private List<TimeReportEntry> timeReports =
+        new List<TimeReportEntry>();
+
+    private List<TimeReportEntry> periodReports =
+        new List<TimeReportEntry>();
+
     private TimeReportInput input = new TimeReportInput();
+
     private int selectedEmployeeId;
-    private DateOnly? fromDate = new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1);
+
+    private DateOnly? fromDate =
+        new DateOnly(DateTime.Today.Year, DateTime.Today.Month, 1);
+
     private DateOnly? toDate = DateOnly.FromDateTime(DateTime.Today);
-    private bool isHr = false;
+
+    private bool isAdmin = false;
     private bool isLoading = true;
     private bool isSaving = false;
     private bool isSearching = false;
     private bool hasSearched = false;
+
     private string errorMessage = "";
     private string successMessage = "";
     private string reportErrorMessage = "";
@@ -212,37 +299,63 @@ else if (employee != null)
     {
         try
         {
-            var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-            // var user = authenticationState.User;
+            var authenticationState =
+                await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
             var authUser = authenticationState.User;
-            var user = await _userManager.GetUserAsync(authenticationState.User);
-            var currentEmployeeId = user?.EmployeeId;
-            if (currentEmployeeId is null)
+
+            if (authUser.Identity?.IsAuthenticated != true)
             {
-                errorMessage = "Du måste vara inloggad för att registrera tid.";
+                errorMessage = "You must be signed in.";
                 return;
             }
 
-            employee = await EmployeeService.GetByIdAsync(currentEmployeeId.Value);
-            if (employee is null)
+            var user = await _userManager.GetUserAsync(authUser);
+
+            if (user == null)
             {
-                errorMessage = "Det finns ingen anställd med samma e-postadress som ditt konto.";
+                errorMessage = "User not found.";
                 return;
             }
 
-            isHr = authUser.IsInRole("HR");
-            employees = (await EmployeeService.GetAllAsync()).OrderBy(item => item.FullName).ToList();
+            isAdmin = authUser.IsInRole("Admin");
 
-            selectedEmployeeId = employee.Id;
-            projects = (await ProjectService.GetAllAsync()).ToList();
-            timeReports = (await TimeReportService.GetAllAsync())
-                .Where(report => report.EmployeeId == employee.Id).ToList();
+            employees = (await EmployeeService.GetAllAsync())
+                .OrderBy(item => item.FullName)
+                .ToList();
+
+            if (user.EmployeeId != null)
+            {
+                employee = await EmployeeService.GetByIdAsync(
+                    user.EmployeeId.Value);
+            }
+
+            if (employee == null && !isAdmin)
+            {
+                errorMessage =
+                    "No employee is linked to your account.";
+
+                return;
+            }
+
+            if (employee != null)
+            {
+                selectedEmployeeId = employee.Id;
+
+                projects = (await ProjectService.GetAllAsync()).ToList();
+
+                timeReports = (await TimeReportService.GetAllAsync())
+                    .Where(report => report.EmployeeId == employee.Id)
+                    .ToList();
+            }
         }
         catch (Exception)
         {
             employee = null;
-            isHr = false;
-            errorMessage = "Det gick inte att ladda uppgifterna. Ladda om sidan och försök igen.";
+            isAdmin = false;
+
+            errorMessage =
+                "Could not load the information. Reload the page and try again.";
         }
         finally
         {
@@ -274,24 +387,26 @@ else if (employee != null)
 
         if (fromDate == null || toDate == null)
         {
-            reportErrorMessage = "Välj från-datum och till-datum.";
+            reportErrorMessage = "Select a start date and an end date.";
             return;
         }
 
         if (fromDate.Value > toDate.Value)
         {
-            reportErrorMessage = "Från-datum får inte vara efter till-datum.";
+            reportErrorMessage =
+                "The start date cannot be after the end date.";
+
             return;
         }
 
-        if (!isHr && employee != null)
+        if (!isAdmin && employee != null)
         {
             selectedEmployeeId = employee.Id;
         }
 
         if (!employees.Any(item => item.Id == selectedEmployeeId))
         {
-            reportErrorMessage = "Välj en anställd.";
+            reportErrorMessage = "Select an employee.";
             return;
         }
 
@@ -299,8 +414,12 @@ else if (employee != null)
 
         try
         {
-            periodReports = (await TimeReportService.GetByEmployeeAndPeriodAsync(
-                selectedEmployeeId, fromDate.Value, toDate.Value)).ToList();
+            periodReports =
+                (await TimeReportService.GetByEmployeeAndPeriodAsync(
+                    selectedEmployeeId,
+                    fromDate.Value,
+                    toDate.Value)).ToList();
+
             hasSearched = true;
         }
         catch (UnauthorizedAccessException exception)
@@ -313,7 +432,7 @@ else if (employee != null)
         }
         catch (Exception)
         {
-            reportErrorMessage = "Det gick inte att hämta arbetstiden.";
+            reportErrorMessage = "Could not load the working hours.";
         }
         finally
         {
@@ -331,9 +450,10 @@ else if (employee != null)
         errorMessage = "";
         successMessage = "";
 
-        if (!projects.Any(project => project.Id == input.ProjectId) || input.Date == null)
+        if (!projects.Any(project => project.Id == input.ProjectId) ||
+            input.Date == null)
         {
-            errorMessage = "Välj ett projekt och ange ett datum.";
+            errorMessage = "Select a project and enter a date.";
             return;
         }
 
@@ -351,13 +471,16 @@ else if (employee != null)
             };
 
             var savedReport = await TimeReportService.AddAsync(timeReport);
+
             timeReports.Add(savedReport);
+
             input = new TimeReportInput
             {
                 ProjectId = savedReport.ProjectId,
                 Date = savedReport.Date
             };
-            successMessage = "Tidrapporten har sparats.";
+
+            successMessage = "The time entry has been saved.";
 
             if (hasSearched)
             {
@@ -366,7 +489,8 @@ else if (employee != null)
         }
         catch (Exception)
         {
-            errorMessage = "Det gick inte att spara tidrapporten. Ladda om sidan och försök igen.";
+            errorMessage =
+                "Could not save the time entry. Reload the page and try again.";
         }
         finally
         {
@@ -376,16 +500,20 @@ else if (employee != null)
 
     private class TimeReportInput
     {
-        [Range(1, int.MaxValue, ErrorMessage = "Välj ett projekt.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Select a project.")]
         public int ProjectId { get; set; }
 
-        [Required(ErrorMessage = "Ange ett datum.")]
-        public DateOnly? Date { get; set; } = DateOnly.FromDateTime(DateTime.Today);
+        [Required(ErrorMessage = "Enter a date.")]
+        public DateOnly? Date { get; set; } =
+            DateOnly.FromDateTime(DateTime.Today);
 
-        [Range(0.01, double.MaxValue, ErrorMessage = "Ange ett antal timmar som är större än noll.")]
+        [Range(
+            0.01,
+            double.MaxValue,
+            ErrorMessage = "Enter a number of hours greater than zero.")]
         public decimal Hours { get; set; }
 
-        [Required(ErrorMessage = "Ange en arbetsbeskrivning.")]
+        [Required(ErrorMessage = "Enter a work description.")]
         public string Description { get; set; } = "";
     }
 }
