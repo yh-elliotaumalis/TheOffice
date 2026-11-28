@@ -168,12 +168,7 @@ namespace TheOffice.Web.Services
             await invoiceRepository.DeleteAsync(id);
         }
 
-        //public async Task<decimal> GetReportedHoursAsync(int projectId)
-        //{
-        //    await CheckAdminAsync();
-
-        //    return await invoiceRepository.GetReportedHoursAsync(projectId);
-        //}
+      
 
         private async Task CheckAdminAsync()
         {
