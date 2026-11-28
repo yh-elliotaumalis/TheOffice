@@ -4,19 +4,21 @@
 @using Microsoft.AspNetCore.Authorization
 @using TheOffice.Application.Interfaces.Services
 @using TheOffice.Domain.Entities
+ 
 @inject ICustomerService CustomerService
 @inject IProjectService ProjectService
 @inject IInvoiceService InvoiceService
 @inject NavigationManager NavigationManager
+ 
 @attribute [Authorize(Roles = "Admin")]
  
-<PageTitle>Skapa faktura</PageTitle>
+<PageTitle>Create invoice</PageTitle>
  
-<h1>Skapa faktura</h1>
+<h1>Create invoice</h1>
  
 @if (isLoading)
 {
-    <p>Laddar kunder och projekt...</p>
+    <p>Loading customers and projects...</p>
 }
 else if (loadMessage != "")
 {
@@ -24,7 +26,7 @@ else if (loadMessage != "")
 }
 else if (customers.Count == 0)
 {
-    <p>Det finns inga kunder att skapa en faktura för.</p>
+    <p>No customers are available for invoicing.</p>
 }
 else
 {
@@ -41,14 +43,15 @@ else
  
         <div class="mb-3">
             <label for="invoice-customer" class="form-label">
-                Kund
+                Customer
             </label>
+ 
             <InputSelect id="invoice-customer"
                          class="form-select"
                          @bind-Value="newInvoice.CustomerId"
                          @bind-Value:after="CustomerChanged"
                          disabled="@(isSaving || isLoadingHours)">
-                <option value="0">Välj en kund</option>
+                <option value="0">Select a customer</option>
  
                 @foreach (var customer in customers)
                 {
@@ -61,14 +64,15 @@ else
  
         <div class="mb-3">
             <label for="invoice-project" class="form-label">
-                Projekt
+                Project
             </label>
+ 
             <InputSelect id="invoice-project"
                          class="form-select"
                          @bind-Value="newInvoice.ProjectId"
                          @bind-Value:after="ProjectChanged"
                          disabled="@(newInvoice.CustomerId == 0 || isSaving || isLoadingHours)">
-                <option value="0">Välj ett projekt</option>
+                <option value="0">Select a project</option>
  
                 @foreach (var project in projects.Where(project =>
                     project.CustomerId == newInvoice.CustomerId))
@@ -83,64 +87,67 @@ else
                 !projects.Any(project =>
                     project.CustomerId == newInvoice.CustomerId))
             {
-                <p>Kunden har inga projekt.</p>
+                <p>This customer has no projects.</p>
             }
         </div>
  
         @if (isLoadingHours)
         {
-            <p>Laddar arbetstid...</p>
+            <p>Loading working hours...</p>
         }
         else
         {
             <p>
-                <strong>Registrerad arbetstid:</strong>
-                @reportedHours.ToString("0.##", swedishCulture) timmar
+                <strong>Recorded working hours:</strong>
+                @reportedHours.ToString("0.##", swedishCulture) hours
             </p>
  
             @if (newInvoice.ProjectId > 0 && reportedHours == 0)
             {
-                <p>Projektet har ingen registrerad arbetstid.</p>
+                <p>No working hours have been recorded for this project.</p>
             }
         }
  
         <div class="mb-3">
             <label for="invoice-hourly-rate" class="form-label">
-                Timpris (kr per timme)
+                Hourly rate (SEK per hour)
             </label>
+ 
             <InputNumber id="invoice-hourly-rate"
                          class="form-control"
                          @bind-Value="newInvoice.HourlyRate"
                          min="0.01"
                          step="0.01"
                          disabled="@isSaving"
-                         ParsingErrorMessage="Ange ett giltigt timpris." />
+                         ParsingErrorMessage="Enter a valid hourly rate." />
         </div>
  
         <div class="mb-3">
             <label for="invoice-date" class="form-label">
-                Fakturadatum
+                Invoice date
             </label>
+ 
             <InputDate id="invoice-date"
                        class="form-control"
                        @bind-Value="newInvoice.DateSent"
                        disabled="@isSaving"
-                       ParsingErrorMessage="Ange ett giltigt fakturadatum." />
+                       ParsingErrorMessage="Enter a valid invoice date." />
         </div>
  
         <div class="mb-3">
             <label for="invoice-due-date" class="form-label">
-                Förfallodatum
+                Due date
             </label>
+ 
             <InputDate id="invoice-due-date"
                        class="form-control"
                        @bind-Value="newInvoice.DeadLine"
                        disabled="@isSaving"
-                       ParsingErrorMessage="Ange ett giltigt förfallodatum." />
+                       ParsingErrorMessage="Enter a valid due date." />
         </div>
  
         <p class="fs-4 fw-bold">
-            Belopp: @Math.Round(
+            Amount: @Math.Round(
                             reportedHours * newInvoice.HourlyRate,
                             2,
                             MidpointRounding.AwayFromZero).ToString(
@@ -150,13 +157,13 @@ else
         <button type="submit"
                 class="btn btn-primary"
                 disabled="@(isSaving || isLoadingHours || newInvoice.ProjectId == 0 || reportedHours <= 0)">
-            @(isSaving ? "Sparar..." : "Skapa faktura")
+            @(isSaving ? "Saving..." : "Create invoice")
         </button>
     </EditForm>
 }
  
 <p class="mt-3">
-    <a href="billing-page">Tillbaka till fakturorna</a>
+    <a href="billing-page">Back to invoices</a>
 </p>
  
 @code {
@@ -190,7 +197,7 @@ else
         }
         catch (Exception)
         {
-            loadMessage = "Det gick inte att hämta kunder och projekt.";
+            loadMessage = "Could not load customers and projects.";
         }
         finally
         {
@@ -228,7 +235,7 @@ else
         }
         catch (Exception)
         {
-            errorMessage = "Det gick inte att hämta arbetstiden.";
+            errorMessage = "Could not load the working hours.";
         }
         finally
         {
@@ -263,7 +270,7 @@ else
         }
         catch (Exception)
         {
-            errorMessage = "Det gick inte att skapa fakturan.";
+            errorMessage = "Could not create the invoice.";
         }
         finally
         {

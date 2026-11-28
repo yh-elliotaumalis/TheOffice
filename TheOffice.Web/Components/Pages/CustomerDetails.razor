@@ -1,100 +1,168 @@
 ﻿@page "/customers/{Id:int}"
+ 
 @attribute [Authorize(Roles = "Admin,Employee")]
+ 
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Authorization
 @using TheOffice.Application.Interfaces.Services
 @using TheOffice.Domain.Entities
+ 
 @inject ICustomerService CustomerService
 @inject NavigationManager NavigationManager
-
-<PageTitle>@(customer?.Name ?? "Kund")</PageTitle>
-
+ 
+<PageTitle>@(customer?.Name ?? "Customer")</PageTitle>
+ 
 @if (isLoading)
 {
-    <p>Laddar kund...</p>
+    <p>Loading customer...</p>
 }
 else if (customer == null)
 {
-    <h1>Kunden hittades inte.</h1>
+    <h1>Customer not found.</h1>
 }
 else
 {
     <h1>@customer.Name</h1>
-
+ 
     @if (!string.IsNullOrEmpty(errorMessage))
     {
         <p class="text-danger">@errorMessage</p>
     }
-
+ 
     @if (isEditing)
     {
-        <EditForm Model="input" OnValidSubmit="SaveCustomer" FormName="edit-customer">
+        <EditForm Model="input"
+                  OnValidSubmit="SaveCustomer"
+                  FormName="edit-customer">
             <DataAnnotationsValidator />
-
+ 
             <div class="mb-3">
-                <label for="customer-name">Namn</label>
-                <InputText id="customer-name" class="form-control" @bind-Value="input.Name" />
-                <ValidationMessage For="() => input.Name" class="text-danger" />
+                <label for="customer-name">Name</label>
+ 
+                <InputText id="customer-name"
+                           class="form-control"
+                           @bind-Value="input.Name" />
+ 
+                <ValidationMessage For="() => input.Name"
+                                   class="text-danger" />
             </div>
-
+ 
             <div class="mb-3">
-                <label for="customer-address">Adress</label>
-                <InputText id="customer-address" class="form-control" @bind-Value="input.Address" />
-                <ValidationMessage For="() => input.Address" class="text-danger" />
+                <label for="customer-address">Address</label>
+ 
+                <InputText id="customer-address"
+                           class="form-control"
+                           @bind-Value="input.Address" />
+ 
+                <ValidationMessage For="() => input.Address"
+                                   class="text-danger" />
             </div>
-
+ 
             <div class="mb-3">
-                <label for="customer-phone">Telefon</label>
-                <InputText id="customer-phone" type="tel" class="form-control" @bind-Value="input.PhoneNumber" />
-                <ValidationMessage For="() => input.PhoneNumber" class="text-danger" />
+                <label for="customer-phone">Phone number</label>
+ 
+                <InputText id="customer-phone"
+                           type="tel"
+                           class="form-control"
+                           @bind-Value="input.PhoneNumber" />
+ 
+                <ValidationMessage For="() => input.PhoneNumber"
+                                   class="text-danger" />
             </div>
-
+ 
             <div class="mb-3">
-                <label for="customer-email">E-post</label>
-                <InputText id="customer-email" type="email" class="form-control" @bind-Value="input.Email" />
-                <ValidationMessage For="() => input.Email" class="text-danger" />
+                <label for="customer-email">Email</label>
+ 
+                <InputText id="customer-email"
+                           type="email"
+                           class="form-control"
+                           @bind-Value="input.Email" />
+ 
+                <ValidationMessage For="() => input.Email"
+                                   class="text-danger" />
             </div>
-
+ 
             <div class="mb-3">
-                <label for="customer-notes">Anteckningar om kundens behov</label>
-                <InputTextArea id="customer-notes" class="form-control" rows="4" @bind-Value="input.Notes" />
+                <label for="customer-notes">
+                    Notes about the customer's needs
+                </label>
+ 
+                <InputTextArea id="customer-notes"
+                               class="form-control"
+                               rows="4"
+                               @bind-Value="input.Notes" />
             </div>
-
-            <button type="submit" class="btn btn-primary" disabled="@isBusy">Spara</button>
-            <button type="button" class="btn btn-secondary" disabled="@isBusy" @onclick="CancelEditing">Avbryt</button>
+ 
+            <button type="submit"
+                    class="btn btn-primary"
+                    disabled="@isBusy">
+                Save
+            </button>
+ 
+            <button type="button"
+                    class="btn btn-secondary"
+                    disabled="@isBusy"
+                    @onclick="CancelEditing">
+                Cancel
+            </button>
         </EditForm>
     }
     else
     {
-        <p><strong>Adress:</strong> @customer.Address</p>
-        <p><strong>Telefon:</strong> @customer.PhoneNumber</p>
-        <p><strong>E-post:</strong> @customer.Email</p>
-
-        <h2>Anteckningar</h2>
+        <p><strong>Address:</strong> @customer.Address</p>
+        <p><strong>Phone number:</strong> @customer.PhoneNumber</p>
+        <p><strong>Email:</strong> @customer.Email</p>
+ 
+        <h2>Notes</h2>
+ 
         @if (string.IsNullOrWhiteSpace(customer.Notes))
         {
-            <p>Inga anteckningar.</p>
+            <p>No notes.</p>
         }
         else
         {
             <p style="white-space: pre-wrap">@customer.Notes</p>
         }
-
-        <button type="button" class="btn btn-primary" disabled="@isBusy" @onclick="StartEditing">Redigera</button>
-        <button type="button" class="btn btn-danger" disabled="@isBusy" @onclick="AskToDelete">Ta bort</button>
+ 
+        <button type="button"
+                class="btn btn-primary"
+                disabled="@isBusy"
+                @onclick="StartEditing">
+            Edit
+        </button>
+ 
+        <button type="button"
+                class="btn btn-danger"
+                disabled="@isBusy"
+                @onclick="AskToDelete">
+            Delete
+        </button>
     }
-
+ 
     @if (confirmDelete)
     {
-        <p class="mt-3">Vill du ta bort kunden?</p>
-        <button type="button" class="btn btn-danger" disabled="@isBusy" @onclick="DeleteCustomer">Ja, ta bort</button>
-        <button type="button" class="btn btn-secondary" disabled="@isBusy" @onclick="CancelDelete">Avbryt</button>
+        <p class="mt-3">Do you want to delete this customer?</p>
+ 
+        <button type="button"
+                class="btn btn-danger"
+                disabled="@isBusy"
+                @onclick="DeleteCustomer">
+            Yes, delete
+        </button>
+ 
+        <button type="button"
+                class="btn btn-secondary"
+                disabled="@isBusy"
+                @onclick="CancelDelete">
+            Cancel
+        </button>
     }
-
-    <h2 class="mt-3">Projekt</h2>
+ 
+    <h2 class="mt-3">Projects</h2>
+ 
     @if (customer.Projects.Count == 0)
     {
-        <p>Inga projekt hittades.</p>
+        <p>No projects found.</p>
     }
     else
     {
@@ -106,35 +174,44 @@ else
         </ul>
     }
 }
-
-<p class="mt-3"><a href="customers">Tillbaka till kundlistan</a></p>
-
+ 
+<p class="mt-3">
+    <a href="customers">Back to customers</a>
+</p>
+ 
 @code {
     [Parameter]
     public int Id { get; set; }
-
+ 
     private Customer? customer;
     private CustomerInput input = new CustomerInput();
+ 
     private bool isLoading = true;
     private bool isEditing = false;
     private bool isBusy = false;
     private bool confirmDelete = false;
+ 
     private string errorMessage = "";
-
+ 
     protected override async Task OnParametersSetAsync()
     {
         isLoading = true;
         isEditing = false;
         confirmDelete = false;
         errorMessage = "";
+ 
         customer = await CustomerService.GetByIdAsync(Id);
+ 
         isLoading = false;
     }
-
+ 
     private void StartEditing()
     {
-        if (customer == null) return;
-
+        if (customer == null)
+        {
+            return;
+        }
+ 
         input = new CustomerInput
         {
             Name = customer.Name,
@@ -143,23 +220,26 @@ else
             Email = customer.Email,
             Notes = customer.Notes
         };
-
+ 
         errorMessage = "";
         confirmDelete = false;
         isEditing = true;
     }
-
+ 
     private void CancelEditing()
     {
         isEditing = false;
     }
-
+ 
     private async Task SaveCustomer()
     {
-        if (customer == null || isBusy) return;
-
+        if (customer == null || isBusy)
+        {
+            return;
+        }
+ 
         isBusy = true;
-
+ 
         try
         {
             customer.Name = input.Name.Trim();
@@ -167,8 +247,9 @@ else
             customer.PhoneNumber = input.PhoneNumber.Trim();
             customer.Email = input.Email.Trim();
             customer.Notes = input.Notes.Trim();
-
+ 
             await CustomerService.UpdateAsync(customer);
+ 
             isEditing = false;
         }
         finally
@@ -176,27 +257,31 @@ else
             isBusy = false;
         }
     }
-
+ 
     private void AskToDelete()
     {
         errorMessage = "";
         confirmDelete = true;
     }
-
+ 
     private void CancelDelete()
     {
         confirmDelete = false;
     }
-
+ 
     private async Task DeleteCustomer()
     {
-        if (customer == null || isBusy) return;
-
+        if (customer == null || isBusy)
+        {
+            return;
+        }
+ 
         isBusy = true;
-
+ 
         try
         {
             await CustomerService.DeleteAsync(customer.Id);
+ 
             NavigationManager.NavigateTo("/customers");
         }
         catch (InvalidOperationException exception)
@@ -209,23 +294,23 @@ else
             isBusy = false;
         }
     }
-
+ 
     private class CustomerInput
     {
-        [Required(ErrorMessage = "Ange kundens namn.")]
+        [Required(ErrorMessage = "Enter the customer's name.")]
         public string Name { get; set; } = "";
-
-        [Required(ErrorMessage = "Ange kundens adress.")]
+ 
+        [Required(ErrorMessage = "Enter the customer's address.")]
         public string Address { get; set; } = "";
-
-        [Required(ErrorMessage = "Ange kundens telefonnummer.")]
-        [Phone(ErrorMessage = "Ange ett giltigt telefonnummer.")]
+ 
+        [Required(ErrorMessage = "Enter the customer's phone number.")]
+        [Phone(ErrorMessage = "Enter a valid phone number.")]
         public string PhoneNumber { get; set; } = "";
-
-        [Required(ErrorMessage = "Ange kundens e-postadress.")]
-        [EmailAddress(ErrorMessage = "Ange en giltig e-postadress.")]
+ 
+        [Required(ErrorMessage = "Enter the customer's email address.")]
+        [EmailAddress(ErrorMessage = "Enter a valid email address.")]
         public string Email { get; set; } = "";
-
+ 
         public string Notes { get; set; } = "";
     }
 }

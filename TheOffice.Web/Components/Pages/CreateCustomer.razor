@@ -1,59 +1,90 @@
 ﻿@page "/customers/create"
+ 
 @attribute [Authorize(Roles = "Admin,Employee")]
+ 
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Authorization
 @using TheOffice.Application.Interfaces.Services
 @using TheOffice.Domain.Entities
+ 
 @inject ICustomerService CustomerService
 @inject NavigationManager NavigationManager
-
-<PageTitle>Skapa kund</PageTitle>
-
-<h1>Skapa kund</h1>
-
-<EditForm Model="input" OnValidSubmit="SaveCustomer" FormName="create-customer">
+ 
+<PageTitle>Create customer</PageTitle>
+ 
+<h1>Create customer</h1>
+ 
+<EditForm Model="input"
+          OnValidSubmit="SaveCustomer"
+          FormName="create-customer">
     <DataAnnotationsValidator />
-
+ 
     <div class="mb-3">
-        <label for="customer-name">Namn</label>
-        <InputText id="customer-name" class="form-control" @bind-Value="input.Name" />
-        <ValidationMessage For="() => input.Name" class="text-danger" />
+        <label for="customer-name">Name</label>
+ 
+        <InputText id="customer-name"
+                   class="form-control"
+                   @bind-Value="input.Name" />
+ 
+        <ValidationMessage For="() => input.Name"
+                           class="text-danger" />
     </div>
-
+ 
     <div class="mb-3">
-        <label for="customer-address">Adress</label>
-        <InputText id="customer-address" class="form-control" @bind-Value="input.Address" />
-        <ValidationMessage For="() => input.Address" class="text-danger" />
+        <label for="customer-address">Address</label>
+ 
+        <InputText id="customer-address"
+                   class="form-control"
+                   @bind-Value="input.Address" />
+ 
+        <ValidationMessage For="() => input.Address"
+                           class="text-danger" />
     </div>
-
+ 
     <div class="mb-3">
-        <label for="customer-phone">Telefon</label>
-        <InputText id="customer-phone" type="tel" class="form-control" @bind-Value="input.PhoneNumber" />
-        <ValidationMessage For="() => input.PhoneNumber" class="text-danger" />
+        <label for="customer-phone">Phone number</label>
+ 
+        <InputText id="customer-phone"
+                   type="tel"
+                   class="form-control"
+                   @bind-Value="input.PhoneNumber" />
+ 
+        <ValidationMessage For="() => input.PhoneNumber"
+                           class="text-danger" />
     </div>
-
+ 
     <div class="mb-3">
-        <label for="customer-email">E-post</label>
-        <InputText id="customer-email" type="email" class="form-control" @bind-Value="input.Email" />
-        <ValidationMessage For="() => input.Email" class="text-danger" />
+        <label for="customer-email">Email</label>
+ 
+        <InputText id="customer-email"
+                   type="email"
+                   class="form-control"
+                   @bind-Value="input.Email" />
+ 
+        <ValidationMessage For="() => input.Email"
+                           class="text-danger" />
     </div>
-
-    <button type="submit" class="btn btn-primary" disabled="@isSaving">Skapa kund</button>
+ 
+    <button type="submit"
+            class="btn btn-primary"
+            disabled="@isSaving">
+        Create customer
+    </button>
 </EditForm>
-
+ 
 @code {
     private CustomerInput input = new CustomerInput();
     private bool isSaving = false;
-
+ 
     private async Task SaveCustomer()
     {
         if (isSaving)
         {
             return;
         }
-
+ 
         isSaving = true;
-
+ 
         try
         {
             var customer = new Customer
@@ -63,8 +94,9 @@
                 PhoneNumber = input.PhoneNumber.Trim(),
                 Email = input.Email.Trim()
             };
-
+ 
             await CustomerService.AddAsync(customer);
+ 
             NavigationManager.NavigateTo("/customers");
         }
         finally
@@ -72,22 +104,21 @@
             isSaving = false;
         }
     }
-
+ 
     private class CustomerInput
     {
-        [Required(ErrorMessage = "Ange kundens namn.")]
+        [Required(ErrorMessage = "Enter the customer's name.")]
         public string Name { get; set; } = "";
-
-        [Required(ErrorMessage = "Ange kundens adress.")]
+ 
+        [Required(ErrorMessage = "Enter the customer's address.")]
         public string Address { get; set; } = "";
-
-        [Required(ErrorMessage = "Ange kundens telefonnummer.")]
-        [Phone(ErrorMessage = "Ange ett giltigt telefonnummer.")]
+ 
+        [Required(ErrorMessage = "Enter the customer's phone number.")]
+        [Phone(ErrorMessage = "Enter a valid phone number.")]
         public string PhoneNumber { get; set; } = "";
-
-        [Required(ErrorMessage = "Ange kundens e-postadress.")]
-        [EmailAddress(ErrorMessage = "Ange en giltig e-postadress.")]
+ 
+        [Required(ErrorMessage = "Enter the customer's email address.")]
+        [EmailAddress(ErrorMessage = "Enter a valid email address.")]
         public string Email { get; set; } = "";
     }
 }
-
