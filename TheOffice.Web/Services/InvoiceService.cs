@@ -168,8 +168,6 @@ namespace TheOffice.Web.Services
             await invoiceRepository.DeleteAsync(id);
         }
 
-      
-
         private async Task CheckAdminAsync()
         {
             var authenticationState =
